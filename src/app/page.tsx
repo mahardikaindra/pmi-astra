@@ -4,7 +4,7 @@
 import Image from "next/image";
 import React, { useState, useEffect } from 'react';
 import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, DocumentData } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from "../../firebaseConfig";
 
 type ProfileData = {
@@ -22,8 +22,6 @@ type ProfileData = {
 };
 
 export default function Home() {
-  const [userId, setUserId] = useState<string>('');
-  const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<ProfileData | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<any>(null);
@@ -32,40 +30,40 @@ export default function Home() {
    * Handles user authentication.
    * This effect runs only once on component mount.
    */
-  useEffect(() => {
-    // Only proceed if auth object is defined
-    if (!auth) {
-      setError("Firebase Auth is not initialized. Check console for details.");
-      setLoading(false);
-      return;
-    }
+  // useEffect(() => {
+  //   // Only proceed if auth object is defined
+  //   if (!auth) {
+  //     setError("Firebase Auth is not initialized. Check console for details.");
+  //     setLoading(false);
+  //     return;
+  //   }
 
-    // Listen for authentication state changes
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUserId(user.uid);
-        setIsAuthReady(true);
-        console.log("User signed in with UID:", user.uid);
-      } else {
-        console.log("User is not signed in. Attempting to sign in...");
-        try {
-          if (typeof window !== 'undefined' && (window as any).__initial_auth_token) {
-            await signInWithCustomToken(auth, (window as any).__initial_auth_token);
-            console.log("Signed in with custom token");
-          } else {
-            await signInAnonymously(auth);
-            console.log("Signed in anonymously");
-          }
-        } catch (authError: any) {
-          console.error("Firebase Auth Error:", authError.code, authError.message);
-          setError(`Failed to authenticate: ${authError.message}`);
-        }
-      }
-    });
+  //   // Listen for authentication state changes
+  //   const unsubscribe = onAuthStateChanged(auth, async (user) => {
+  //     if (user) {
+  //       setUserId(user.uid);
+  //       setIsAuthReady(true);
+  //       console.log("User signed in with UID:", user.uid);
+  //     } else {
+  //       console.log("User is not signed in. Attempting to sign in...");
+  //       try {
+  //         if (typeof window !== 'undefined' && (window as any).__initial_auth_token) {
+  //           await signInWithCustomToken(auth, (window as any).__initial_auth_token);
+  //           console.log("Signed in with custom token");
+  //         } else {
+  //           await signInAnonymously(auth);
+  //           console.log("Signed in anonymously");
+  //         }
+  //       } catch (authError: any) {
+  //         console.error("Firebase Auth Error:", authError.code, authError.message);
+  //         setError(`Failed to authenticate: ${authError.message}`);
+  //       }
+  //     }
+  //   });
 
-    // Cleanup the listener on component unmount
-    return () => unsubscribe();
-  }, []);
+  //   // Cleanup the listener on component unmount
+  //   return () => unsubscribe();
+  // }, []);
 
   /**
    * Fetches the profile data from Firestore.
@@ -73,7 +71,7 @@ export default function Home() {
    */
   useEffect(() => {
     // Only proceed if user is authenticated and db is defined
-    if (isAuthReady && userId && db) {
+    if (db) {
       const appId = typeof window !== 'undefined' && (window as any).__app_id !== undefined
         ? (window as any).__app_id
         : 'Ij8HEOktiALS0zjKB3ay';
@@ -115,7 +113,7 @@ export default function Home() {
       setError("Firestore is not initialized. Check console for details.");
       setLoading(false);
     }
-  }, [isAuthReady, userId]);
+  }, []);
 
   // Handle loading and error states
   if (loading) {
@@ -127,7 +125,7 @@ export default function Home() {
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           <p className="mt-4 text-lg">Loading profile data...</p>
-          <p className="mt-2 text-sm text-gray-500">User ID: {userId ? userId : 'Authenticating...'}</p>
+          {/* <p className="mt-2 text-sm text-gray-500">User ID: {userId ? userId : 'Authenticating...'}</p> */}
         </div>
       </div>
     );
