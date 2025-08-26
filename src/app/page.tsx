@@ -1,11 +1,15 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from "next/image";
 import React, { useState, useEffect } from 'react';
-import { signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { auth, db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfig";
+
+// Extend the Window interface to include __app_id
+declare global {
+  interface Window {
+    __app_id?: string;
+  }
+}
 
 type ProfileData = {
   id: string;
@@ -24,7 +28,7 @@ type ProfileData = {
 export default function Home() {
   const [profileData, setProfileData] = useState<ProfileData | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<string>('');
 
 /**
    * Handles user authentication.
@@ -72,8 +76,8 @@ export default function Home() {
   useEffect(() => {
     // Only proceed if user is authenticated and db is defined
     if (db) {
-      const appId = typeof window !== 'undefined' && (window as any).__app_id !== undefined
-        ? (window as any).__app_id
+      const appId = typeof window !== 'undefined' && (window).__app_id !== undefined
+        ? (window).__app_id
         : 'Ij8HEOktiALS0zjKB3ay';
       const docPath = `artifacts/${appId}/users/2025001/profiles/my-profile`;
       const profileDocRef = doc(db, docPath);
