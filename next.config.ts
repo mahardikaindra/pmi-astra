@@ -5,10 +5,10 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'docs.google.com',
-        port: '',
-        pathname: '**',
+        protocol: "https",
+        hostname: "docs.google.com",
+        port: "",
+        pathname: "**",
       },
     ],
   },

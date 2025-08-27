@@ -2,8 +2,8 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
-
+import { db } from "../../../../firebaseConfig";
+import { useParams } from "next/navigation";
 // Extend the Window interface to include __app_id
 declare global {
   interface Window {
@@ -25,7 +25,8 @@ type ProfileData = {
   sik?: string;
 };
 
-export default function Home() {
+export default function PekerjaPage() {
+  const params = useParams();
   const [profileData, setProfileData] = useState<ProfileData | undefined>(
     undefined,
   );
@@ -33,56 +34,17 @@ export default function Home() {
   const [error, setError] = useState<string>("");
 
   /**
-   * Handles user authentication.
-   * This effect runs only once on component mount.
-   */
-  // useEffect(() => {
-  //   // Only proceed if auth object is defined
-  //   if (!auth) {
-  //     setError("Firebase Auth is not initialized. Check console for details.");
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   // Listen for authentication state changes
-  //   const unsubscribe = onAuthStateChanged(auth, async (user) => {
-  //     if (user) {
-  //       setUserId(user.uid);
-  //       setIsAuthReady(true);
-  //       console.log("User signed in with UID:", user.uid);
-  //     } else {
-  //       console.log("User is not signed in. Attempting to sign in...");
-  //       try {
-  //         if (typeof window !== 'undefined' && (window as any).__initial_auth_token) {
-  //           await signInWithCustomToken(auth, (window as any).__initial_auth_token);
-  //           console.log("Signed in with custom token");
-  //         } else {
-  //           await signInAnonymously(auth);
-  //           console.log("Signed in anonymously");
-  //         }
-  //       } catch (authError: any) {
-  //         console.error("Firebase Auth Error:", authError.code, authError.message);
-  //         setError(`Failed to authenticate: ${authError.message}`);
-  //       }
-  //     }
-  //   });
-
-  //   // Cleanup the listener on component unmount
-  //   return () => unsubscribe();
-  // }, []);
-
-  /**
    * Fetches the profile data from Firestore.
    * This effect runs whenever isAuthReady or userId changes.
    */
   useEffect(() => {
     // Only proceed if user is authenticated and db is defined
-    if (db) {
+    if (db || params.id) {
       const appId =
         typeof window !== "undefined" && window.__app_id !== undefined
           ? window.__app_id
           : "Ij8HEOktiALS0zjKB3ay";
-      const docPath = `artifacts/${appId}/users/2025001/profiles/my-profile`;
+      const docPath = `artifacts/${appId}/users/${params.id}/profiles/my-profile`;
       const profileDocRef = doc(db, docPath);
 
       console.log(
@@ -129,7 +91,7 @@ export default function Home() {
       setError("Firestore is not initialized. Check console for details.");
       setLoading(false);
     }
-  }, []);
+  }, [params.id]);
 
   // Handle loading and error states
   if (loading) {
