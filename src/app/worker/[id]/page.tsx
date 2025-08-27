@@ -243,30 +243,32 @@ export default function WorkerPage() {
               </div>
             </div>
 
-            {profileData?.licencies && profileData?.licencies.length && <div className="mt-8 space-y-6">
-              <div className="flex flex-col items-center">
-                <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
-                  Lisensi
-                </h3>
-                <iframe
-                  src={profileData?.licencies[0] || ""}
-                  className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
-                  width={600}
-                  height={400}
-                />
+            {profileData?.licencies && profileData?.licencies.length && (
+              <div className="mt-8 space-y-6">
+                <div className="flex flex-col items-center">
+                  <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
+                    Lisensi
+                  </h3>
+                  <iframe
+                    src={profileData?.licencies[0] || ""}
+                    className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                    width={600}
+                    height={400}
+                  />
+                </div>
+                <div className="flex flex-col items-center">
+                  <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
+                    Sertifikat
+                  </h3>
+                  <iframe
+                    src={profileData?.licencies[1] || ""}
+                    className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                    width={600}
+                    height={400}
+                  />
+                </div>
               </div>
-              <div className="flex flex-col items-center">
-                <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
-                  Sertifikat
-                </h3>
-                <iframe
-                  src={profileData?.licencies[1] || ""}
-                  className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
-                  width={600}
-                  height={400}
-                />
-              </div>
-            </div>}
+            )}
           </div>
         </div>
 
