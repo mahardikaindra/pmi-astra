@@ -25,7 +25,7 @@ type ProfileData = {
   sik?: string;
 };
 
-export default function PekerjaPage() {
+export default function WorkerPage() {
   const params = useParams();
   const [profileData, setProfileData] = useState<ProfileData | undefined>(
     undefined,
@@ -243,7 +243,7 @@ export default function PekerjaPage() {
               </div>
             </div>
 
-            <div className="mt-8 space-y-6">
+            {profileData?.licencies && profileData?.licencies.length && <div className="mt-8 space-y-6">
               <div className="flex flex-col items-center">
                 <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
                   Lisensi
@@ -266,7 +266,7 @@ export default function PekerjaPage() {
                   height={400}
                 />
               </div>
-            </div>
+            </div>}
           </div>
         </div>
 
