@@ -3,7 +3,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../../firebaseConfig";
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 // Extend the Window interface to include __app_id
 declare global {
   interface Window {
@@ -76,13 +76,17 @@ export default function PekerjaPage() {
               sik: data.sik,
             };
             setProfileData(profile);
+          } else {
+            setError("Profile not found.");
           }
           setLoading(false);
         },
         (error) => {
           console.error("Firestore onSnapshot error:", error);
+          // Call notFound() only if there's an error fetching the document
           setError("Failed to fetch data from Firestore.");
           setLoading(false);
+          notFound();
         },
       );
 
@@ -126,6 +130,7 @@ export default function PekerjaPage() {
   }
 
   if (error) {
+    if (error === "Profile not found.") return notFound();
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-red-500 p-4">
         <div className="text-center font-semibold">
