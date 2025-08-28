@@ -3,7 +3,8 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../../firebaseConfig";
-import { useParams, notFound } from "next/navigation";
+import { useParams, notFound, useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 // Extend the Window interface to include __app_id
 declare global {
   interface Window {
@@ -27,6 +28,7 @@ type ProfileData = {
 
 export default function WorkerPage() {
   const params = useParams();
+  const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData | undefined>(
     undefined,
   );
@@ -144,7 +146,12 @@ export default function WorkerPage() {
   return (
     <>
       <nav className="w-full bg-white p-4 flex items-center justify-between">
-        <div className="text-black font-bold text-lg">Astra</div>
+         <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
+        >
+          <ArrowLeft size={20} />
+        </button>
         <Image
           src="/icon_bar.png"
           alt="Astra Logo"
