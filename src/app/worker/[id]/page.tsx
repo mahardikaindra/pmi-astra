@@ -44,12 +44,9 @@ export default function WorkerPage() {
         typeof window !== "undefined" && window.__app_id !== undefined
           ? window.__app_id
           : "Ij8HEOktiALS0zjKB3ay";
-      const docPath = `artifacts/${appId}/users/${params.id}/profiles/my-profile`;
+      const docPath = `artifacts/${appId}/users/${params.id}`;
       const profileDocRef = doc(db, docPath);
 
-      console.log(
-        `Setting up real-time listener for document at path: ${docPath}`,
-      );
       setLoading(true);
 
       const unsubscribe = onSnapshot(

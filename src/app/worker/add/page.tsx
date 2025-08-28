@@ -65,15 +65,17 @@ export default function AddWorkerPage() {
       }
 
       // Simpan ke Firestore
-      const docRef = doc(
-        db,
-        `artifacts/Ij8HEOktiALS0zjKB3ay/users/${form.id}/profiles/my-profile`,
-      );
+      const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${form.id}`);
 
       await setDoc(docRef, {
-        ...form,
+        id: Number(form.id),
+        name: form.name,
         age: Number(form.age),
+        area: form.area,
+        contractor: form.contractor,
         point_reward: Number(form.point_reward),
+        position: form.position,
+        punishment: form.punishment,
         photo: photoURL,
         sik: sikURL,
         licenses: licensesURL,

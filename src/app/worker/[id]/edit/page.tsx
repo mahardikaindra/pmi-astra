@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { db, storage } from "../../../../../firebaseConfig";
@@ -29,19 +30,18 @@ export default function EditWorkerPage() {
   const [sik, setSik] = useState<File | null>(null);
   const [licenses, setLicenses] = useState<File[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
 
   // Load data dari Firestore
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const docRef = doc(
-          db,
-          `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}/profiles/my-profile`,
-        );
+        const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}`);
         const snap = await getDoc(docRef);
 
         if (snap.exists()) {
-          setForm({ ...(snap.data() as any) });
+          setForm({ id: snap.id, ...(snap.data() as any) });
         }
       } catch (error) {
         console.error("Error loading worker:", error);
@@ -53,6 +53,12 @@ export default function EditWorkerPage() {
 
     if (id) fetchData();
   }, [id]);
+
+  const cleanData = (obj: Record<string, any>) => {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null)
+    );
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -66,12 +72,13 @@ export default function EditWorkerPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
 
     try {
       // Upload photo jika ada file baru
       let photoURL = form.photo;
       if (photo) {
-        const photoRef = ref(storage, `workers/${form.id}/photo/${photo.name}`);
+        const photoRef = ref(storage, `workers/${id}/photo/${photo.name}`);
         await uploadBytes(photoRef, photo);
         photoURL = await getDownloadURL(photoRef);
       }
@@ -79,7 +86,7 @@ export default function EditWorkerPage() {
       // Upload SIK jika ada file baru
       let sikURL = form.sik;
       if (sik) {
-        const sikRef = ref(storage, `workers/${form.id}/sik/${sik.name}`);
+        const sikRef = ref(storage, `workers/${id}/sik/${sik.name}`);
         await uploadBytes(sikRef, sik);
         sikURL = await getDownloadURL(sikRef);
       }
@@ -89,36 +96,32 @@ export default function EditWorkerPage() {
       if (licenses.length > 0) {
         licensesURL = [];
         for (const file of licenses) {
-          const fileRef = ref(
-            storage,
-            `workers/${form.id}/licenses/${file.name}`,
-          );
+          const fileRef = ref(storage, `workers/${id}/licenses/${file.name}`);
           await uploadBytes(fileRef, file);
           const url = await getDownloadURL(fileRef);
           licensesURL.push(url);
         }
       }
 
-      // Simpan update ke Firestore
-      const docRef = doc(
-        db,
-        `artifacts/Ij8HEOktiALS0zjKB3ay/users/${form.id}/profiles/my-profile`,
-      );
+      // Simpan update ke Firestore (pakai id dari URL, bukan form.id)
+      const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}`);
 
-      await setDoc(docRef, {
+      await setDoc(docRef, cleanData({
         ...form,
         age: Number(form.age),
         point_reward: Number(form.point_reward),
-        photo: photoURL,
-        sik: sikURL,
-        licenses: licensesURL,
-      });
+        photo: photoURL || "",
+        sik: sikURL || "",
+        licenses: licensesURL || [],
+      }));
 
       alert("Worker berhasil diupdate ✅");
-      router.push("/workers"); // redirect ke list page
+      router.push("/");
     } catch (error) {
       console.error("Error updating worker:", error);
       alert("Gagal mengupdate data ❌");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -131,130 +134,109 @@ export default function EditWorkerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Worker</h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Grid Inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              "id",
-              "name",
-              "age",
-              "area",
-              "contractor",
-              "point_reward",
-              "position",
-              "punishment",
-            ].map((field) => (
-              <div key={field} className="flex flex-col">
-                <label className="text-sm font-medium text-gray-600 mb-1 capitalize">
-                  {field.replace("_", " ")}
+    <>
+      <nav className="w-full bg-white p-4 flex items-center justify-between">
+        <Image
+          src="/icon_bar.png"
+          alt="Astra Logo"
+          width={200}
+          height={50}
+          className="object-contain"
+        />
+      </nav>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Worker</h1>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Grid Inputs */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                "id",
+                "name",
+                "age",
+                "area",
+                "contractor",
+                "point_reward",
+                "position",
+                "punishment",
+              ].map((field) => (
+                <div key={field} className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-600 mb-1 capitalize">
+                    {field.replace("_", " ")}
+                  </label>
+                  <input
+                    type={
+                      field === "age" || field === "point_reward"
+                        ? "number"
+                        : "text"
+                    }
+                    name={field}
+                    value={(form as any)[field]}
+                    onChange={handleChange}
+                    className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* File Uploads */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Photo
                 </label>
                 <input
-                  type={
-                    field === "age" || field === "point_reward"
-                      ? "number"
-                      : "text"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    e.target.files && setPhoto(e.target.files[0])
                   }
-                  name={field}
-                  value={(form as any)[field]}
-                  onChange={handleChange}
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
                 />
               </div>
-            ))}
-          </div>
 
-          {/* File Uploads */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Photo
-              </label>
-              {form.photo && (
-                <img
-                  src={form.photo}
-                  alt="current"
-                  className="w-24 h-24 rounded-lg mb-2 object-cover"
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  SIK
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => e.target.files && setSik(e.target.files[0])}
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-50 file:text-green-600 hover:file:bg-green-100"
                 />
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => e.target.files && setPhoto(e.target.files[0])}
-                className="block w-full text-sm text-gray-700
-                  file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
-                  file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-              />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Licenses
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  multiple
+                  onChange={handleFileArrayChange}
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-600 hover:file:bg-purple-100"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                SIK
-              </label>
-              {form.sik && (
-                <a
-                  href={form.sik}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline mb-2 block"
-                >
-                  Lihat SIK
-                </a>
-              )}
-              <input
-                type="file"
-                accept="image/*,.pdf"
-                onChange={(e) => e.target.files && setSik(e.target.files[0])}
-                className="block w-full text-sm text-gray-700
-                  file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
-                  file:bg-green-600 file:text-white hover:file:bg-green-700"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Licenses
-              </label>
-              {form.licenses?.length > 0 && (
-                <ul className="list-disc pl-6 mb-2 text-sm text-gray-600">
-                  {form.licenses.map((url, i) => (
-                    <li key={i}>
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-purple-600 underline"
-                      >
-                        License {i + 1}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <input
-                type="file"
-                accept="image/*,.pdf"
-                multiple
-                onChange={handleFileArrayChange}
-                className="block w-full text-sm text-gray-700
-                  file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
-                  file:bg-purple-600 file:text-white hover:file:bg-purple-700"
-              />
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            Update Worker
-          </button>
-        </form>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`w-full py-3 rounded-lg font-semibold transition ${
+                submitting
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
+            >
+              {submitting ? "Updating..." : "Update Worker"}
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
