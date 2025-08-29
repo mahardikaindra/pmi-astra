@@ -9,8 +9,9 @@ import { useParams, useRouter } from "next/navigation";
 import { db, storage } from "../../../../../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import dynamic from "next/dynamic";
 
-export default function EditWorkerPage() {
+function PageComponent() {
   const { id } = useParams(); // ambil [id] dari URL
   const router = useRouter();
 
@@ -34,12 +35,18 @@ export default function EditWorkerPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
+    // ✅ taruh helper function di atas, bukan di bawah useEffect
+  const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-      }
+      return localStorage.getItem("token");
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const token = getLocalStorageToken();
+    if (!token) {
+      router.push("/"); // redirect kalau token ga ada
     }
   }, [router]);
 
@@ -338,3 +345,8 @@ export default function EditWorkerPage() {
     </>
   );
 }
+
+
+const EditWorkerPage = dynamic(() => Promise.resolve(PageComponent), { ssr: false });
+
+export default EditWorkerPage;

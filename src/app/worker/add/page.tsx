@@ -6,8 +6,10 @@ import { db, storage } from "../../../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
-export default function AddWorkerPage() {
+
+function PageComponent() {
   const router = useRouter();
   const [form, setForm] = useState({
     id: "",
@@ -24,13 +26,18 @@ export default function AddWorkerPage() {
   const [sik, setSik] = useState<File | null>(null);
   const [licenses, setLicenses] = useState<File[]>([]);
 
-  // Check if token exists in local storage
-  useEffect(() => {
+  // ✅ taruh helper function di atas, bukan di bawah useEffect
+  const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-      }
+      return localStorage.getItem("token");
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const token = getLocalStorageToken();
+    if (!token) {
+      router.push("/"); // redirect kalau token ga ada
     }
   }, [router]);
 
@@ -207,3 +214,7 @@ export default function AddWorkerPage() {
     </>
   );
 }
+
+const AddWorkerPage = dynamic(() => Promise.resolve(PageComponent), { ssr: false });
+
+export default AddWorkerPage;

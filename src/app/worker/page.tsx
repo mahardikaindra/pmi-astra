@@ -33,16 +33,21 @@ export default function WorkersPage() {
   const { theme } = useTheme();
   const router = useRouter();
 
-  // Check if token exists in local storage
-  useEffect(() => { 
-    if (typeof window !== "undefined") { 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-      }
+  // ✅ taruh helper function di atas, bukan di bawah useEffect
+  const getLocalStorageToken = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const token = getLocalStorageToken();
+    if (!token) {
+      router.push("/"); // redirect kalau token ga ada
     }
   }, [router]);
-
+  
   useEffect(() => {
     fetchWorkers();
   }, []); // Fetch workers only once on component mount
@@ -217,6 +222,27 @@ export default function WorkersPage() {
           ))}
         </div>
       </div>
+      <Link
+        href="/worker/add"
+        className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200"
+        title="Add New Worker"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      </Link>
     </>
   );
 }
+      
