@@ -2,6 +2,7 @@
 "use client";
 
 import Image from "next/image";
+import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { db, storage } from "../../../../../firebaseConfig";
@@ -32,14 +33,13 @@ export default function EditWorkerPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-    // Check if token exists in local storage
+  // Check if token exists in local storage
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/");
     }
   }, [router]);
-
 
   // Load data dari Firestore
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function EditWorkerPage() {
 
   const cleanData = (obj: Record<string, any>) => {
     return Object.fromEntries(
-      Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null)
+      Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null),
     );
   };
 
@@ -114,14 +114,17 @@ export default function EditWorkerPage() {
       // Simpan update ke Firestore (pakai id dari URL, bukan form.id)
       const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}`);
 
-      await setDoc(docRef, cleanData({
-        ...form,
-        age: Number(form.age),
-        point_reward: Number(form.point_reward),
-        photo: photoURL || "",
-        sik: sikURL || "",
-        licenses: licensesURL || [],
-      }));
+      await setDoc(
+        docRef,
+        cleanData({
+          ...form,
+          age: Number(form.age),
+          point_reward: Number(form.point_reward),
+          photo: photoURL || "",
+          sik: sikURL || "",
+          licenses: licensesURL || [],
+        }),
+      );
 
       alert("Worker berhasil diupdate ✅");
       router.push("/");
@@ -143,18 +146,50 @@ export default function EditWorkerPage() {
 
   return (
     <>
-      <nav className="w-full bg-white p-4 flex items-center justify-between">
-        <Image
-          src="/icon_bar.png"
-          alt="Astra Logo"
-          width={200}
-          height={50}
-          className="object-contain"
-        />
-      </nav>
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <Header hasBack={true} />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Worker</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            Edit Worker
+          </h1>
+
+          {/* Avatar and Edit Button */}
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <Image
+                width={128}
+                height={128}
+                src={
+                  photo
+                    ? URL.createObjectURL(photo)
+                    : form.photo ||
+                      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iNjQiIGZpbGw9IiNFNUU3RUIiLz48cGF0aCBkPSJNNjQgNDBDNTAuNzUgNDAgNDAgNTAuNzUgNDAgNjRjMCAxMy4yNSAxMC43NSAyNCAyNCAyNHMyNC0xMC43NSAyNC0yNEM4OCA1MC43NSA3Ny4yNSA0MCA2NCA0MHptMCA0NGMtOC44MiAwLTE2LTcuMTgtMTYtMTZzNy4xOC0xNiAxNi0xNiAxNiA3LjE4IDE2IDE2LTcuMTggMTYtMTYgMTZ6TTg4LjggOTguNEM4My4xMyA5My40NCA3NC4zMSA5MCA2NCA5MGMtMTAuMzEgMC0xOS4xMyAzLjQ0LTI0LjggOC40QzMyLjQgMTEzLjYgNDYuNiAxMjQgNjQgMTI0czMxLjYtMTAuNCAzNC44LTE1LjZ6IiBmaWxsPSIjQzZDNkM2Ii8+PC9zdmc+"
+                }
+                alt="Worker Photo"
+                className="w-32 h-32 object-cover rounded-full border-4 border-white shadow-lg"
+              />
+              <label
+                htmlFor="photo-upload"
+                className="absolute bottom-1 right-1 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors shadow-md"
+                title="Change photo"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </label>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Grid Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -189,20 +224,14 @@ export default function EditWorkerPage() {
             </div>
 
             {/* File Uploads */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Photo
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    e.target.files && setPhoto(e.target.files[0])
-                  }
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
-                />
-              </div>
+            <div className="space-y-6">
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => e.target.files && setPhoto(e.target.files[0])}
+                className="hidden"
+              />
 
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -228,6 +257,65 @@ export default function EditWorkerPage() {
                   className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-600 hover:file:bg-purple-100"
                 />
               </div>
+
+              {form.sik && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-600 mb-1">
+                    Current SIK:
+                  </p>
+                  {form.sik.endsWith(".pdf") ? (
+                    <a
+                      href={form.sik}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      View SIK (PDF)
+                    </a>
+                  ) : (
+                    <Image
+                      width={96}
+                      height={96}
+                      src={form.sik}
+                      alt="Current SIK"
+                      className="w-32 h-32 object-cover rounded-lg"
+                    />
+                  )}
+                </div>
+              )}
+
+              {form.licenses && form.licenses.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-600 mb-2">
+                    Current Licenses:
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {form.licenses.map((licenseUrl, index) => (
+                      <div key={index} className="relative group">
+                        {licenseUrl.endsWith(".pdf") ? (
+                          <a
+                            href={licenseUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full h-24 bg-gray-200 rounded-lg flex items-center justify-center text-blue-600 hover:underline text-xs"
+                          >
+                            View PDF {index + 1}
+                          </a>
+                        ) : (
+                          <Image
+                            width={96}
+                            height={96}
+                            src={licenseUrl}
+                            alt={`License ${index + 1}`}
+                            className="w-full
+                            h-24 object-cover rounded-lg"
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Submit Button */}

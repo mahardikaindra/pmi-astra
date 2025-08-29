@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Check if token exists in local storage
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/worker");
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +44,7 @@ export default function LoginPage() {
     }
   };
 
-    return (
+  return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <div className="w-full max-w-sm bg-white shadow-lg rounded-2xl p-6">
         {/* Logo */}
@@ -71,18 +81,25 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="text-black  w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="text-black w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <button
             type="submit"

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import Image from "next/image";
+import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db, storage } from "../../../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
@@ -24,13 +24,13 @@ export default function AddWorkerPage() {
   const [sik, setSik] = useState<File | null>(null);
   const [licenses, setLicenses] = useState<File[]>([]);
 
-    // Check if token exists in local storage
-    useEffect(() => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-      }
-    }, [router]);
+  // Check if token exists in local storage
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/");
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -113,15 +113,7 @@ export default function AddWorkerPage() {
 
   return (
     <>
-      <nav className="w-full bg-white p-4 flex items-center justify-between">
-        <Image
-          src="/icon_bar.png"
-          alt="Astra Logo"
-          width={200}
-          height={50}
-          className="object-contain"
-        />
-      </nav>
+      <Header />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Worker</h1>

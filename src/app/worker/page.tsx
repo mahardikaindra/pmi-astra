@@ -1,13 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { db } from "../../../firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 import { Pencil, Trash2, QrCode } from "lucide-react";
 import { deleteDoc, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import Header from "@/components/Header";
+import { useTheme } from "../theme-provider";
 
 interface Worker {
   id: string;
@@ -26,6 +28,8 @@ interface Worker {
 export default function WorkersPage() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { theme } = useTheme();
   const router = useRouter();
 
   // Check if token exists in local storage
@@ -36,42 +40,54 @@ export default function WorkersPage() {
     }
   }, [router]);
 
+  useEffect(() => {
+    fetchWorkers();
+  }, []); // Fetch workers only once on component mount
+
+  // Filter workers based on search term whenever searchTerm or the original workers list changes
+  const filteredWorkers = workers.filter(
+    (worker) =>
+      worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      worker.id.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  // No need for a separate useEffect for filtering, as it can be done directly in render
+  // or by deriving state. The previous approach caused infinite re-renders because
+  // `setWorkers(filteredWorkers)` inside `useEffect` with `workers` as a dependency
+  // would trigger the effect again.
 
   useEffect(() => {
-    const fetchWorkers = async () => {
-      try {
-        const usersCol = collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/users");
-        const usersSnap = await getDocs(usersCol);
-
-        const workersData: Worker[] = usersSnap.docs.map((docSnap) => {
-          const data = docSnap.data() as Worker;
-          const { id, ...restData } = data;
-          return {
-            id: docSnap.id,
-            ...restData,
-          };
-        });
-
-        setWorkers(workersData);
-      } catch (e) {
-        console.error("Error fetching workers:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchWorkers();
   }, []);
+
+  const fetchWorkers = async () => {
+    try {
+      const usersCol = collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/users");
+      const usersSnap = await getDocs(usersCol);
+
+      const workersData: Worker[] = usersSnap.docs.map((docSnap) => {
+        const data = docSnap.data() as Worker;
+        const { id, ...restData } = data;
+        return {
+          id: docSnap.id,
+          ...restData,
+        };
+      });
+
+      setWorkers(workersData);
+    } catch (e) {
+      console.error("Error fetching workers:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus worker ini?")) return;
 
     try {
       // hapus dokumen dari Firestore
-      const docRef = doc(
-        db,
-        `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}`
-      );
+      const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}`);
       await deleteDoc(docRef);
 
       // update state agar UI langsung refresh
@@ -97,27 +113,40 @@ export default function WorkersPage() {
 
   return (
     <>
-      <nav className="w-full bg-white p-4 flex items-center justify-between">
-        <Image
-          src="/icon_bar.png"
-          alt="Astra Logo"
-          width={200}
-          height={50}
-          className="object-contain"
-        />
-        <button
-          onClick={() => {
-            localStorage.removeItem("token");
-            router.push("/");
-          }}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-        >Logout</button>
-      </nav>
+      <Header />
+      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4`}>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search workers by name or ID..."
+            className={`w-full p-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${theme === "light" ? "text-black" : "text-white bg-gray-700 border-gray-600"}`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              className="h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              ></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
       <div className="min-h-screen bg-gray-100 p-4">
         <h1 className="text-xl font-bold mb-4 text-gray-800">Daftar Pegawai</h1>
 
         <div className="space-y-4">
-          {workers.map((worker) => (
+          {filteredWorkers.map((worker) => (
             <div
               key={worker.id}
               onClick={() => router.push(`/worker/${worker.id}`)}
@@ -155,7 +184,10 @@ export default function WorkersPage() {
               </div>
 
               {/* Aksi */}
-              <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="flex flex-col gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Link
                   href={`/worker/${worker.id}/edit`}
                   title="Edit"

@@ -5,6 +5,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../../firebaseConfig";
 import { useParams, notFound, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import Header from "@/components/Header";
 // Extend the Window interface to include __app_id
 declare global {
   interface Window {
@@ -141,27 +142,10 @@ export default function WorkerPage() {
       </div>
     );
   }
-  console.log("Profile Data:", profileData?.licenses.length);
   // Render the main page content after data is loaded
   return (
     <>
-      <nav className="w-full bg-white p-4 flex items-center justify-between">
-         <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-gray-700 hover:text-blue-600"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <Image
-          src="/icon_bar.png"
-          alt="Astra Logo"
-          width={200}
-          height={50}
-          className="object-contain"
-        />
-        <div className="text-black text-sm">User ID: {profileData?.id}</div>
-      </nav>
-
+      <Header />
       <div className="bg-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 font-sans antialiased">
         <div className="w-full max-w-xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden mb-8">
           <div
@@ -241,9 +225,7 @@ export default function WorkerPage() {
                 <span className="text-xs font-semibold uppercase text-gray-500">
                   Keterangan
                 </span>
-                <span className="text-sm font-medium">
-                  {"-"}
-                </span>
+                <span className="text-sm font-medium">{"-"}</span>
               </div>
             </div>
 
@@ -263,22 +245,20 @@ export default function WorkerPage() {
                     />
                   </div>
                 ))}
-                {
-                  profileData?.sik && (
-                    <div className="flex flex-col items-center">
-                      <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
-                        SIK
-                      </h3>
-                      <Image
-                        src={profileData.sik}
-                        alt="SIK"
-                        className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
-                        width={600}
-                        height={400}
-                      />
-                    </div>
-                  )
-                }
+                {profileData?.sik && (
+                  <div className="flex flex-col items-center">
+                    <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
+                      SIK
+                    </h3>
+                    <Image
+                      src={profileData.sik}
+                      alt="SIK"
+                      className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                      width={600}
+                      height={400}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
