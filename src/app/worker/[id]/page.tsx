@@ -145,7 +145,7 @@ export default function WorkerPage() {
   // Render the main page content after data is loaded
   return (
     <>
-      <Header />
+      <Header hasBack />
       <div className="bg-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 font-sans antialiased">
         <div className="w-full max-w-xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden mb-8">
           <div
