@@ -74,6 +74,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              placeholder="Enter your email"
               className="text-black w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
@@ -87,6 +88,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                placeholder="Enter your password"
                 className="text-black w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10"
               />
               <button
@@ -104,7 +106,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-[#002D62] text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50"
           >
             {loading ? "Logging in..." : "Login"}
           </button>

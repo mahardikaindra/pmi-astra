@@ -224,7 +224,7 @@ export default function WorkersPage() {
       </div>
       <Link
         href="/worker/add"
-        className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200"
+        className="fixed bottom-6 right-6 bg-[#002D62] text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200"
         title="Add New Worker"
       >
         <svg
