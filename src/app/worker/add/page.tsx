@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import Image from "next/image";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db, storage } from "../../../../firebaseConfig";
@@ -122,10 +123,54 @@ function PageComponent() {
 
   return (
     <>
-      <Header />
+      <Header hasBack />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Worker</h1>
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <Image
+                width={128}
+                height={128}
+                src={
+                  photo
+                    ? URL.createObjectURL(photo)
+                    :
+                      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iNjQiIGZpbGw9IiNFNUU3RUIiLz48cGF0aCBkPSJNNjQgNDBDNTAuNzUgNDAgNDAgNTAuNzUgNDAgNjRjMCAxMy4yNSAxMC43NSAyNCAyNCAyNHMyNC0xMC43NSAyNC0yNEM4OCA1MC43NSA3Ny4yNSA0MCA2NCA0MHptMCA0NGMtOC44MiAwLTE2LTcuMTgtMTYtMTZzNy4xOC0xNiAxNi0xNiAxNiA3LjE4IDE2IDE2LTcuMTggMTYtMTYgMTZ6TTg4LjggOTguNEM4My4xMyA5My40NCA3NC4zMSA5MCA2NCA5MGMtMTAuMzEgMC0xOS4xMyAzLjQ0LTI0LjggOC40QzMyLjQgMTEzLjYgNDYuNiAxMjQgNjQgMTI0czMxLjYtMTAuNCAzNC44LTE1LjZ6IiBmaWxsPSIjQzZDNkM2Ii8+PC9zdmc+"
+                }
+                alt="Worker Photo"
+                className="w-32 h-32 object-cover rounded-full border-4 border-white shadow-lg"
+              />
+              <label
+                htmlFor="photo-upload"
+                className="absolute bottom-1 right-1 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors shadow-md"
+                title="Change photo"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </label>
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  e.target.files && setPhoto(e.target.files[0])
+                }
+                className="hidden"
+              />
+            </div>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Grid Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -161,20 +206,6 @@ function PageComponent() {
 
             {/* File Uploads */}
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Photo
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    e.target.files && setPhoto(e.target.files[0])
-                  }
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
-                />
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   SIK
