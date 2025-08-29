@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db, storage } from "../../../../firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useRouter } from "next/navigation";
 
 export default function AddWorkerPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     id: "",
     name: "",
@@ -21,6 +23,14 @@ export default function AddWorkerPage() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [sik, setSik] = useState<File | null>(null);
   const [licenses, setLicenses] = useState<File[]>([]);
+
+    // Check if token exists in local storage
+    useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/");
+      }
+    }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
