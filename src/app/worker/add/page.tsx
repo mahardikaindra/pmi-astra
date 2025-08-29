@@ -26,9 +26,11 @@ export default function AddWorkerPage() {
 
   // Check if token exists in local storage
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/");
+      }
     }
   }, [router]);
 

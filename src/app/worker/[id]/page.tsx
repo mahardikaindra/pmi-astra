@@ -3,8 +3,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../../firebaseConfig";
-import { useParams, notFound, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { useParams, notFound } from "next/navigation";
 import Header from "@/components/Header";
 // Extend the Window interface to include __app_id
 declare global {
@@ -29,7 +28,6 @@ type ProfileData = {
 
 export default function WorkerPage() {
   const params = useParams();
-  const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData | undefined>(
     undefined,
   );
