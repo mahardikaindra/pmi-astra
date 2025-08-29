@@ -17,7 +17,7 @@ type ProfileData = {
   age: string;
   area: string;
   contractor: string;
-  licencies: string[];
+  licenses: string[];
   name: string;
   photo: string;
   point_reward?: number;
@@ -66,7 +66,7 @@ export default function WorkerPage() {
               age: data.age,
               area: data.area,
               contractor: data.contractor,
-              licencies: data.licencies,
+              licenses: data.licenses,
               name: data.name,
               photo: data.photo,
               point_reward: data.point_reward,
@@ -141,7 +141,7 @@ export default function WorkerPage() {
       </div>
     );
   }
-
+  console.log("Profile Data:", profileData?.licenses.length);
   // Render the main page content after data is loaded
   return (
     <>
@@ -239,38 +239,46 @@ export default function WorkerPage() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-semibold uppercase text-gray-500">
-                  SIK
+                  Keterangan
                 </span>
                 <span className="text-sm font-medium">
-                  {profileData?.sik || "-"}
+                  {"-"}
                 </span>
               </div>
             </div>
 
-            {profileData?.licencies && profileData?.licencies.length && (
-              <div className="mt-8 space-y-6">
-                <div className="flex flex-col items-center">
-                  <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
-                    Lisensi
-                  </h3>
-                  <iframe
-                    src={profileData?.licencies[0] || ""}
-                    className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
-                    width={600}
-                    height={400}
-                  />
-                </div>
-                <div className="flex flex-col items-center">
-                  <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
-                    Sertifikat
-                  </h3>
-                  <iframe
-                    src={profileData?.licencies[1] || ""}
-                    className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
-                    width={600}
-                    height={400}
-                  />
-                </div>
+            {profileData?.licenses && profileData.licenses.length > 0 && (
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {profileData.licenses.map((licenseUrl, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
+                      {index === 0 ? "Lisensi" : `Sertifikat ${index}`}
+                    </h3>
+                    <Image
+                      src={licenseUrl}
+                      alt={index === 0 ? "Lisensi" : `Sertifikat ${index}`}
+                      className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                      width={600}
+                      height={400}
+                    />
+                  </div>
+                ))}
+                {
+                  profileData?.sik && (
+                    <div className="flex flex-col items-center">
+                      <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
+                        SIK
+                      </h3>
+                      <Image
+                        src={profileData.sik}
+                        alt="SIK"
+                        className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                        width={600}
+                        height={400}
+                      />
+                    </div>
+                  )
+                }
               </div>
             )}
           </div>
