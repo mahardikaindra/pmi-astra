@@ -10,6 +10,7 @@ import { db, storage } from "../../../../../firebaseConfig";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import dynamic from "next/dynamic";
+import { Star } from "lucide-react";
 
 function PageComponent() {
   const { id } = useParams(); // ambil [id] dari URL
@@ -26,7 +27,9 @@ function PageComponent() {
     punishment: "",
     photo: "",
     sik: "",
+    information: "",
     licenses: [] as string[],
+    rating: 0, // ⭐ tambahkan rating
   });
 
   const [photo, setPhoto] = useState<File | null>(null);
@@ -75,6 +78,10 @@ function PageComponent() {
     return Object.fromEntries(
       Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null),
     );
+  };
+
+  const handleRating = (value: number) => {
+    setForm({ ...form, rating: value });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,11 +139,12 @@ function PageComponent() {
           photo: photoURL || "",
           sik: sikURL || "",
           licenses: licensesURL || [],
+          rating: Number(form.rating), // ⭐ simpan rating
         }),
       );
 
       alert("Worker berhasil diupdate ✅");
-      router.push("/");
+      router.push("/worker");
     } catch (error) {
       console.error("Error updating worker:", error);
       alert("Gagal mengupdate data ❌");
@@ -211,25 +219,59 @@ function PageComponent() {
                 "point_reward",
                 "position",
                 "punishment",
+                "information",
               ].map((field) => (
                 <div key={field} className="flex flex-col">
-                  <label className="text-sm font-medium text-gray-600 mb-1 capitalize">
+                  <label className="text-sm font-bold text-black mb-1 capitalize">
                     {field.replace("_", " ")}
                   </label>
-                  <input
-                    type={
-                      field === "age" || field === "point_reward"
-                        ? "number"
-                        : "text"
-                    }
-                    name={field}
-                    value={(form as any)[field]}
-                    onChange={handleChange}
-                    className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
+                  {field === "information" ? (
+                    <textarea
+                      name={field}
+                      value={(form as any)[field]}
+                      onChange={(e) =>
+                        setForm({ ...form, [e.target.name]: e.target.value })
+                      }
+                      rows={3}
+                      className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  ) : (
+                    <input
+                      type={
+                        field === "age" || field === "point_reward"
+                          ? "number"
+                          : "text"
+                      }
+                      name={field}
+                      value={(form as any)[field]}
+                      onChange={handleChange}
+                      className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  )}
                 </div>
               ))}
+            </div>
+
+            {/* ⭐ Rating Input */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-600 mb-1">
+                Rating
+              </label>
+              <div className="flex space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    onClick={() => handleRating(star)}
+                    className={`h-6 w-6 cursor-pointer ${
+                      form.rating >= star
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* File Uploads */}
@@ -334,7 +376,7 @@ function PageComponent() {
               className={`w-full py-3 rounded-lg font-semibold transition ${
                 submitting
                   ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
+                  : "bg-[#002D62] text-white hover:bg-blue-700"
               }`}
             >
               {submitting ? "Updating..." : "Update Worker"}

@@ -8,6 +8,7 @@ import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { Star } from "lucide-react";
 
 function PageComponent() {
   const router = useRouter();
@@ -20,13 +21,18 @@ function PageComponent() {
     point_reward: "",
     position: "",
     punishment: "",
+    photo: "",
+    sik: "",
+    information: "",
+    licenses: [] as string[],
+    rating: 0, // ⭐ tambahkan rating
   });
 
   const [photo, setPhoto] = useState<File | null>(null);
   const [sik, setSik] = useState<File | null>(null);
   const [licenses, setLicenses] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
-  // ✅ taruh helper function di atas, bukan di bawah useEffect
   const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("token");
@@ -37,7 +43,7 @@ function PageComponent() {
   useEffect(() => {
     const token = getLocalStorageToken();
     if (!token) {
-      router.push("/"); // redirect kalau token ga ada
+      router.push("/");
     }
   }, [router]);
 
@@ -51,11 +57,14 @@ function PageComponent() {
     }
   };
 
+  const handleRating = (value: number) => {
+    setForm({ ...form, rating: value });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setSubmitting(true);
     try {
-      // Upload photo
       let photoURL = "";
       if (photo) {
         const photoRef = ref(storage, `workers/${form.id}/photo/${photo.name}`);
@@ -63,7 +72,6 @@ function PageComponent() {
         photoURL = await getDownloadURL(photoRef);
       }
 
-      // Upload SIK
       let sikURL = "";
       if (sik) {
         const sikRef = ref(storage, `workers/${form.id}/sik/${sik.name}`);
@@ -71,7 +79,6 @@ function PageComponent() {
         sikURL = await getDownloadURL(sikRef);
       }
 
-      // Upload Licenses
       const licensesURL: string[] = [];
       for (const file of licenses) {
         const fileRef = ref(
@@ -83,7 +90,6 @@ function PageComponent() {
         licensesURL.push(url);
       }
 
-      // Simpan ke Firestore
       const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${form.id}`);
 
       await setDoc(docRef, {
@@ -95,12 +101,15 @@ function PageComponent() {
         point_reward: Number(form.point_reward),
         position: form.position,
         punishment: form.punishment,
+        rating: Number(form.rating), // ⭐ simpan rating
         photo: photoURL,
         sik: sikURL,
         licenses: licensesURL,
+        information: form.information,
       });
 
       alert("Worker berhasil disimpan ✅");
+      router.push("/worker");
       setForm({
         id: "",
         name: "",
@@ -110,6 +119,11 @@ function PageComponent() {
         point_reward: "",
         position: "",
         punishment: "",
+        rating: 0,
+        licenses: [],
+        photo: "",
+        sik: "",
+        information: "",
       });
       setPhoto(null);
       setSik(null);
@@ -117,6 +131,8 @@ function PageComponent() {
     } catch (error) {
       console.error("Error saving worker:", error);
       alert("Gagal menyimpan data ❌");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -126,6 +142,8 @@ function PageComponent() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Worker</h1>
+
+          {/* Avatar */}
           <div className="flex justify-center mb-8">
             <div className="relative">
               <Image
@@ -134,7 +152,7 @@ function PageComponent() {
                 src={
                   photo
                     ? URL.createObjectURL(photo)
-                    : "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNjQiIGN5PSI2NCIgcj0iNjQiIGZpbGw9IiNFNUU3RUIiLz48cGF0aCBkPSJNNjQgNDBDNTAuNzUgNDAgNDAgNTAuNzUgNDAgNjRjMCAxMy4yNSAxMC43NSAyNCAyNCAyNHMyNC0xMC43NSAyNC0yNEM4OCA1MC43NSA3Ny4yNSA0MCA2NCA0MHptMCA0NGMtOC44MiAwLTE2LTcuMTgtMTYtMTZzNy4xOC0xNiAxNi0xNiAxNiA3LjE4IDE2IDE2LTcuMTggMTYtMTYgMTZ6TTg4LjggOTguNEM4My4xMyA5My40NCA3NC4zMSA5MCA2NCA5MGMtMTAuMzEgMC0xOS4xMyAzLjQ0LTI0LjggOC40QzMyLjQgMTEzLjYgNDYuNiAxMjQgNjQgMTI0czMxLjYtMTAuNCAzNC44LTE1LjZ6IiBmaWxsPSIjQzZDNkM2Ii8+PC9zdmc+"
+                    : "data:image/svg+xml;base64,..."
                 }
                 alt="Worker Photo"
                 className="w-32 h-32 object-cover rounded-full border-4 border-white shadow-lg"
@@ -144,19 +162,7 @@ function PageComponent() {
                 className="absolute bottom-1 right-1 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors shadow-md"
                 title="Change photo"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                  <path
-                    fillRule="evenodd"
-                    d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                ✏️
               </label>
               <input
                 id="photo-upload"
@@ -167,6 +173,7 @@ function PageComponent() {
               />
             </div>
           </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Grid Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -179,6 +186,7 @@ function PageComponent() {
                 "point_reward",
                 "position",
                 "punishment",
+                "information",
               ].map((field) => (
                 <div key={field} className="flex flex-col">
                   <label className="text-sm font-medium text-gray-600 mb-1 capitalize">
@@ -200,6 +208,26 @@ function PageComponent() {
               ))}
             </div>
 
+            {/* ⭐ Rating Input */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-600 mb-1">
+                Rating
+              </label>
+              <div className="flex space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    onClick={() => handleRating(star)}
+                    className={`h-6 w-6 cursor-pointer ${
+                      form.rating >= star
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
             {/* File Uploads */}
             <div className="space-y-4">
               <div>
@@ -210,7 +238,7 @@ function PageComponent() {
                   type="file"
                   accept="image/*,.pdf"
                   onChange={(e) => e.target.files && setSik(e.target.files[0])}
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-50 file:text-green-600 hover:file:bg-green-100"
+                  className="block w-full text-sm text-gray-500"
                 />
               </div>
 
@@ -223,7 +251,7 @@ function PageComponent() {
                   accept="image/*,.pdf"
                   multiple
                   onChange={handleFileArrayChange}
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-600 hover:file:bg-purple-100"
+                  className="block w-full text-sm text-gray-500"
                 />
               </div>
             </div>
@@ -231,9 +259,14 @@ function PageComponent() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+              disabled={submitting}
+              className={`w-full py-3 rounded-lg font-semibold transition ${
+                submitting
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-[#002D62] text-white hover:bg-blue-700"
+              }`}
             >
-              Save Worker
+              {submitting ? "Updating..." : "Save Worker"}
             </button>
           </form>
         </div>

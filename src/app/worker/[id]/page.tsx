@@ -5,6 +5,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../../firebaseConfig";
 import { useParams, notFound } from "next/navigation";
 import Header from "@/components/Header";
+import { Star } from "lucide-react";
 // Extend the Window interface to include __app_id
 declare global {
   interface Window {
@@ -22,8 +23,10 @@ type ProfileData = {
   photo: string;
   point_reward?: number;
   position: string;
-  punsihment?: string;
+  punishment?: string;
+  information?: string;
   sik?: string;
+  rating?: number;
 };
 
 export default function WorkerPage() {
@@ -70,8 +73,10 @@ export default function WorkerPage() {
               photo: data.photo,
               point_reward: data.point_reward,
               position: data.position,
-              punsihment: data.punsihment,
+              punishment: data.punishment,
               sik: data.sik,
+              rating: data.rating,
+              information: data.information,
             };
             setProfileData(profile);
           } else {
@@ -216,16 +221,39 @@ export default function WorkerPage() {
                   Hukuman
                 </span>
                 <span className="text-sm font-medium">
-                  {profileData?.punsihment || "-"}
+                  {profileData?.punishment || "-"}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-semibold uppercase text-gray-500">
                   Keterangan
                 </span>
-                <span className="text-sm font-medium">{"-"}</span>
+                <span className="text-sm font-medium">
+                  {profileData?.information || "-"}
+                </span>
               </div>
             </div>
+
+            {/* ⭐ Show Rating */}
+            {profileData?.rating && (
+              <div className="mt-6 flex items-center space-x-2">
+                <span className="text-xs font-semibold uppercase text-gray-500">
+                  Rating
+                </span>
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-5 w-5 ${
+                        profileData.rating && profileData.rating >= star
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {profileData?.licenses && profileData.licenses.length > 0 && (
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">

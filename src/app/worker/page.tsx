@@ -1,16 +1,22 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { db, auth } from "../../../firebaseConfig";
-import { collection, getDocs, doc, deleteDoc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  doc,
+  deleteDoc,
+  getDoc,
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { Pencil, Trash2, QrCode } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useTheme } from "../theme-provider";
+import CustomPopup from "@/components/CustomPopUp";
 
 interface Worker {
   id?: string;
@@ -23,6 +29,8 @@ interface Worker {
   punishment: string;
   photo?: string;
   sik?: string;
+  rating?: number;
+  information?: string;
   licenses?: string[];
 }
 
@@ -34,11 +42,15 @@ export default function WorkersPage() {
   const router = useRouter();
   const [role, setRole] = useState<string | null>(null);
 
+  // 👉 tambahan state untuk popup
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+
   // 🔐 Cek user login dan ambil role dari Firestore
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        router.push("/"); // redirect ke login kalau belum login
+        router.push("/");
         return;
       }
 
@@ -50,14 +62,10 @@ export default function WorkersPage() {
           const userData = userSnap.data();
           const userRole = userData.role || "USER";
           setRole(userRole);
-
-          // 🚀 Bisa cache di localStorage tapi bukan sumber utama
           localStorage.setItem("role", userRole);
 
-          // Fetch data hanya kalau user punya role
           fetchWorkers();
         } else {
-          console.error("User data tidak ditemukan di Firestore");
           router.push("/");
         }
       } catch (err) {
@@ -87,16 +95,23 @@ export default function WorkersPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus worker ini?")) return;
+  // ✅ confirm delete
+  const handleConfirm = async () => {
+    if (!selectedWorker?.id) return;
 
     try {
-      const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}`);
+      const docRef = doc(
+        db,
+        `artifacts/Ij8HEOktiALS0zjKB3ay/users/${selectedWorker.id}`,
+      );
       await deleteDoc(docRef);
 
-      setWorkers((prev) => prev.filter((w) => w.id !== id));
+      setWorkers((prev) => prev.filter((w) => w.id !== selectedWorker.id));
+      setIsOpen(false);
+      setSelectedWorker(null);
       alert("Worker berhasil dihapus ✅");
     } catch (error) {
+      console.error("Delete error:", error);
       alert("Gagal menghapus worker ❌");
     }
   };
@@ -104,48 +119,31 @@ export default function WorkersPage() {
   const generateQRCode = (worker: Worker) => {
     const workerUrl = `https://pmi-astra.vercel.app/worker/${worker.id}`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-      workerUrl
+      workerUrl,
     )}&size=200x200`;
 
     window.open(qrCodeUrl, "_blank");
   };
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
-  // 🔐 Contoh: hanya role tertentu yang boleh delete
+
   const canReadDelete = role === "SPV" || role === "Head";
 
   return (
     <>
       <Header />
       <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4`}>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search workers by name or ID..."
-            className={`w-full p-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              theme === "light"
-                ? "text-black"
-                : "text-white bg-gray-700 border-gray-600"
-            }`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-        </div>
+        <input
+          type="text"
+          placeholder="Search workers by name or ID..."
+          className={`w-full p-2 pl-10 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            theme === "light"
+              ? "text-black border-gray-300"
+              : "text-white bg-gray-700 border-gray-600"
+          }`}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <div className="min-h-screen bg-gray-100 p-4">
@@ -155,9 +153,9 @@ export default function WorkersPage() {
           {workers
             .filter(
               (worker) =>
-                worker.name
-                  .toLowerCase()
-                  .includes(searchTerm.toLowerCase()) || (worker.id && worker.id.toLowerCase().includes(searchTerm.toLowerCase()))
+                worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (worker.id &&
+                  worker.id.toLowerCase().includes(searchTerm.toLowerCase())),
             )
             .map((worker) => (
               <div
@@ -194,6 +192,9 @@ export default function WorkersPage() {
                   <p className="text-xs text-gray-500">
                     Reward: {worker.point_reward} | Age: {worker.age}
                   </p>
+                  <p className="text-xs text-yellow-500">
+                    {"⭐".repeat(worker.rating || 0)}
+                  </p>
                 </div>
 
                 {/* Aksi */}
@@ -201,16 +202,21 @@ export default function WorkersPage() {
                   className="flex flex-col gap-2"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {canReadDelete && (<Link
-                    href={`/worker/${worker.id}/edit`}
-                    title="Edit"
-                    className="text-gray-600 hover:text-blue-600"
-                  >
-                    <Pencil size={20} />
-                  </Link>)}
+                  {canReadDelete && (
+                    <Link
+                      href={`/worker/${worker.id}/edit`}
+                      title="Edit"
+                      className="text-gray-600 hover:text-blue-600"
+                    >
+                      <Pencil size={20} />
+                    </Link>
+                  )}
                   {canReadDelete && (
                     <button
-                      onClick={() => worker.id && handleDelete(worker.id)}
+                      onClick={() => {
+                        setSelectedWorker(worker);
+                        setIsOpen(true);
+                      }}
                       title="Delete"
                       className="text-gray-600 hover:text-red-600"
                     >
@@ -229,6 +235,7 @@ export default function WorkersPage() {
             ))}
         </div>
       </div>
+
       <Link
         href="/worker/add"
         className="fixed bottom-6 right-6 bg-[#002D62] text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200"
@@ -242,9 +249,29 @@ export default function WorkersPage() {
           stroke="currentColor"
           strokeWidth={2}
         >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
       </Link>
+
+      {isOpen && (
+        <CustomPopup
+          title="Konfirmasi"
+          message={`Apakah Anda yakin ingin menghapus worker "${
+            selectedWorker?.name || ""
+          }"?`}
+          onClose={() => {
+            setIsOpen(false);
+            setSelectedWorker(null);
+          }}
+          onConfirm={handleConfirm}
+          confirmText="Ya"
+          cancelText="Batal"
+        />
+      )}
     </>
   );
 }
