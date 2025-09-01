@@ -35,7 +35,7 @@ function PageComponent() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-    // ✅ taruh helper function di atas, bukan di bawah useEffect
+  // ✅ taruh helper function di atas, bukan di bawah useEffect
   const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("token");
@@ -346,7 +346,8 @@ function PageComponent() {
   );
 }
 
-
-const EditWorkerPage = dynamic(() => Promise.resolve(PageComponent), { ssr: false });
+const EditWorkerPage = dynamic(() => Promise.resolve(PageComponent), {
+  ssr: false,
+});
 
 export default EditWorkerPage;

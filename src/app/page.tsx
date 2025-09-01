@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Image from "next/image";
@@ -6,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import { Eye, EyeOff } from "lucide-react";
+import { db } from "../../firebaseConfig";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,11 +19,13 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
-  // Check if token exists in local storage
+  // ✅ Cek token di client side
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      router.push("/worker");
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        router.push("/worker");
+      }
     }
   }, [router]);
 
@@ -29,16 +35,32 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await signInWithEmailAndPassword(auth, email, password);
-      console.log("Login successful:", response);
-      // set token in local storage
-      if (response.user) {
-        const token = await response.user.getIdToken();
-        localStorage.setItem("token", token);
-        router.push("/worker"); // redirect ke halaman utama (bisa ganti ke /workers)
+      // 🔑 Firebase Auth Login
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      console.log("UserCredential:", userCredential);
+      const user = userCredential.user;
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const role = userData.role;
+
+        localStorage.setItem("role", role);
+        localStorage.setItem("email", email);
+        localStorage.setItem("token", (user as any).accessToken);
+
+        router.push("/worker");
+      } else {
+        throw new Error("User tidak ditemukan di Firestore");
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (error) {
+      console.error("Login error:", error);
+      return { success: false, error };
     } finally {
       setLoading(false);
     }
