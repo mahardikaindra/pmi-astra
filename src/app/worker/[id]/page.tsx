@@ -1,11 +1,12 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../../firebaseConfig";
 import { useParams, notFound } from "next/navigation";
 import Header from "@/components/Header";
-import { Star } from "lucide-react";
+import { Star, Pencil } from "lucide-react";
 // Extend the Window interface to include __app_id
 declare global {
   interface Window {
@@ -99,6 +100,10 @@ export default function WorkerPage() {
       setLoading(false);
     }
   }, [params.id]);
+
+  const canReadDelete =
+    localStorage.getItem("role") === "SPV" ||
+    localStorage.getItem("role") === "Head";
 
   // Handle loading and error states
   if (loading) {
@@ -299,6 +304,15 @@ export default function WorkerPage() {
           </p>
         </footer>
       </div>
+      {canReadDelete && (
+        <Link
+          href={`/worker/edit/${profileData?.id}`}
+          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg flex items-center justify-center"
+          title="Edit Worker"
+        >
+          <Pencil className="h-6 w-6" />
+        </Link>
+      )}
     </>
   );
 }
