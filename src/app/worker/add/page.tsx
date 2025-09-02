@@ -245,7 +245,7 @@ function PageComponent() {
                 </label>
                 <input
                   type="file"
-                  accept="image/*,.pdf"
+                  accept="image/*"
                   onChange={(e) => e.target.files && setSik(e.target.files[0])}
                   className="block w-full text-sm text-gray-500"
                 />
@@ -257,7 +257,7 @@ function PageComponent() {
                 </label>
                 <input
                   type="file"
-                  accept="image/*,.pdf"
+                  accept="image/*"
                   onChange={(e) =>
                     e.target.files && setLicense1(e.target.files[0])
                   }
@@ -271,7 +271,7 @@ function PageComponent() {
                 </label>
                 <input
                   type="file"
-                  accept="image/*,.pdf"
+                  accept="image/*"
                   onChange={(e) =>
                     e.target.files && setLicense2(e.target.files[0])
                   }
