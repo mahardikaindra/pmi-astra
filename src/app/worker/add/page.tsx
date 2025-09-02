@@ -24,13 +24,15 @@ function PageComponent() {
     photo: "",
     sik: "",
     information: "",
-    licenses: [] as string[],
-    rating: 0, // ⭐ tambahkan rating
+    license1: "",
+    license2: "",
+    rating: 0,
   });
 
   const [photo, setPhoto] = useState<File | null>(null);
   const [sik, setSik] = useState<File | null>(null);
-  const [licenses, setLicenses] = useState<File[]>([]);
+  const [license1, setLicense1] = useState<File | null>(null);
+  const [license2, setLicense2] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const getLocalStorageToken = () => {
@@ -49,12 +51,6 @@ function PageComponent() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleFileArrayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setLicenses(Array.from(e.target.files));
-    }
   };
 
   const handleRating = (value: number) => {
@@ -79,15 +75,24 @@ function PageComponent() {
         sikURL = await getDownloadURL(sikRef);
       }
 
-      const licensesURL: string[] = [];
-      for (const file of licenses) {
-        const fileRef = ref(
+      let license1URL = "";
+      if (license1) {
+        const license1Ref = ref(
           storage,
-          `workers/${form.id}/licenses/${file.name}`,
+          `workers/${form.id}/licenses/license1-${license1.name}`,
         );
-        await uploadBytes(fileRef, file);
-        const url = await getDownloadURL(fileRef);
-        licensesURL.push(url);
+        await uploadBytes(license1Ref, license1);
+        license1URL = await getDownloadURL(license1Ref);
+      }
+
+      let license2URL = "";
+      if (license2) {
+        const license2Ref = ref(
+          storage,
+          `workers/${form.id}/licenses/license2-${license2.name}`,
+        );
+        await uploadBytes(license2Ref, license2);
+        license2URL = await getDownloadURL(license2Ref);
       }
 
       const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${form.id}`);
@@ -101,15 +106,17 @@ function PageComponent() {
         point_reward: Number(form.point_reward),
         position: form.position,
         punishment: form.punishment,
-        rating: Number(form.rating), // ⭐ simpan rating
+        rating: Number(form.rating),
         photo: photoURL,
         sik: sikURL,
-        licenses: licensesURL,
+        license1: license1URL,
+        license2: license2URL,
         information: form.information,
       });
 
       alert("Worker berhasil disimpan ✅");
       router.push("/worker");
+
       setForm({
         id: "",
         name: "",
@@ -120,14 +127,16 @@ function PageComponent() {
         position: "",
         punishment: "",
         rating: 0,
-        licenses: [],
         photo: "",
         sik: "",
+        license1: "",
+        license2: "",
         information: "",
       });
       setPhoto(null);
       setSik(null);
-      setLicenses([]);
+      setLicense1(null);
+      setLicense2(null);
     } catch (error) {
       console.error("Error saving worker:", error);
       alert("Gagal menyimpan data ❌");
@@ -244,13 +253,28 @@ function PageComponent() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Licenses
+                  License 1
                 </label>
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  multiple
-                  onChange={handleFileArrayChange}
+                  onChange={(e) =>
+                    e.target.files && setLicense1(e.target.files[0])
+                  }
+                  className="block w-full text-sm text-gray-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  License 2
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    e.target.files && setLicense2(e.target.files[0])
+                  }
                   className="block w-full text-sm text-gray-500"
                 />
               </div>

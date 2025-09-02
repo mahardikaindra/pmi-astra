@@ -7,6 +7,7 @@ import { db } from "../../../../firebaseConfig";
 import { useParams, notFound } from "next/navigation";
 import Header from "@/components/Header";
 import { Star, Pencil } from "lucide-react";
+
 // Extend the Window interface to include __app_id
 declare global {
   interface Window {
@@ -19,7 +20,8 @@ type ProfileData = {
   age: string;
   area: string;
   contractor: string;
-  licenses: string[];
+  license1: string;
+  license2: string;
   name: string;
   photo: string;
   point_reward?: number;
@@ -31,84 +33,76 @@ type ProfileData = {
 };
 
 export default function WorkerPage() {
-  const params = useParams();
-  const [profileData, setProfileData] = useState<ProfileData | undefined>(
-    undefined,
-  );
-  const [loading, setLoading] = useState<boolean>(true);
+  const params = useParams<{ id: string }>();
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [canReadDelete, setCanReadDelete] = useState(false);
 
-  /**
-   * Fetches the profile data from Firestore.
-   * This effect runs whenever isAuthReady or userId changes.
-   */
+  // ✅ Cek role hanya di client
   useEffect(() => {
-    // Only proceed if user is authenticated and db is defined
-    if (db || params.id) {
-      const appId =
-        typeof window !== "undefined" && window.__app_id !== undefined
-          ? window.__app_id
-          : "Ij8HEOktiALS0zjKB3ay";
-      const docPath = `artifacts/${appId}/users/${params.id}`;
-      const profileDocRef = doc(db, docPath);
-
-      setLoading(true);
-
-      const unsubscribe = onSnapshot(
-        profileDocRef,
-        (docSnapshot) => {
-          if (docSnapshot.exists()) {
-            console.log(
-              "Document data received:",
-              JSON.stringify(docSnapshot.data()),
-            );
-            const data = docSnapshot.data();
-            // Map Firestore data to ProfileData type
-            const profile: ProfileData = {
-              id: data.id,
-              age: data.age,
-              area: data.area,
-              contractor: data.contractor,
-              licenses: data.licenses,
-              name: data.name,
-              photo: data.photo,
-              point_reward: data.point_reward,
-              position: data.position,
-              punishment: data.punishment,
-              sik: data.sik,
-              rating: data.rating,
-              information: data.information,
-            };
-            setProfileData(profile);
-          } else {
-            setError("Profile not found.");
-          }
-          setLoading(false);
-        },
-        (error) => {
-          console.error("Firestore onSnapshot error:", error);
-          // Call notFound() only if there's an error fetching the document
-          setError("Failed to fetch data from Firestore.");
-          setLoading(false);
-          notFound();
-        },
-      );
-
-      return () => unsubscribe();
-    } else if (!db) {
-      setError("Firestore is not initialized. Check console for details.");
-      setLoading(false);
+    if (typeof window !== "undefined") {
+      const role = localStorage.getItem("role");
+      if (role === "SPV" || role === "Head") {
+        setCanReadDelete(true);
+      }
     }
-  }, [params.id]);
+  }, []);
 
-  const canReadDelete =
-    localStorage.getItem("role") === "SPV" ||
-    localStorage.getItem("role") === "Head";
+  // ✅ Ambil data dari Firestore
+  useEffect(() => {
+    if (!db || !params?.id) return;
 
-  // Handle loading and error states
+    const appId =
+      typeof window !== "undefined" && window.__app_id
+        ? window.__app_id
+        : "Ij8HEOktiALS0zjKB3ay";
+
+    const docPath = `artifacts/${appId}/users/${params.id}`;
+    const profileDocRef = doc(db, docPath);
+
+    setLoading(true);
+    const unsubscribe = onSnapshot(
+      profileDocRef,
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const data = docSnapshot.data();
+          const profile: ProfileData = {
+            id: data.id,
+            age: data.age,
+            area: data.area,
+            contractor: data.contractor,
+            license1: data.license1,
+            license2: data.license2,
+            name: data.name,
+            photo: data.photo,
+            point_reward: data.point_reward,
+            position: data.position,
+            punishment: data.punishment,
+            sik: data.sik,
+            rating: data.rating,
+            information: data.information,
+          };
+          setProfileData(profile);
+        } else {
+          setError("Profile not found.");
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Firestore error:", err);
+        setError("Failed to fetch data from Firestore.");
+        setLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [params?.id]);
+
+  // ✅ State Loading
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
         <div className="text-center">
           <svg
             className="animate-spin h-10 w-10 text-blue-500 mx-auto"
@@ -127,16 +121,16 @@ export default function WorkerPage() {
             <path
               className="opacity-75"
               fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             ></path>
           </svg>
           <p className="mt-4 text-lg">Loading profile data...</p>
-          {/* <p className="mt-2 text-sm text-gray-500">User ID: {userId ? userId : 'Authenticating...'}</p> */}
         </div>
       </div>
     );
   }
 
+  // ✅ Error handler
   if (error) {
     if (error === "Profile not found.") return notFound();
     return (
@@ -150,7 +144,8 @@ export default function WorkerPage() {
       </div>
     );
   }
-  // Render the main page content after data is loaded
+
+  // ✅ Render utama
   return (
     <>
       <Header hasBack />
@@ -172,74 +167,28 @@ export default function WorkerPage() {
           </div>
 
           <div className="p-6">
+            {/* Info dasar */}
             <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-gray-700">
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  ID
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.id || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  Kontraktor
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.contractor || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  Posisi
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.position || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  Nama
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.name || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  Usia
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.age || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  Area
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.area || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  Hukuman
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.punishment || "-"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-semibold uppercase text-gray-500">
-                  Keterangan
-                </span>
-                <span className="text-sm font-medium">
-                  {profileData?.information || "-"}
-                </span>
-              </div>
+              {[
+                ["ID", profileData?.id],
+                ["Kontraktor", profileData?.contractor],
+                ["Posisi", profileData?.position],
+                ["Nama", profileData?.name],
+                ["Usia", profileData?.age],
+                ["Area", profileData?.area],
+                ["Hukuman", profileData?.punishment],
+                ["Keterangan", profileData?.information],
+              ].map(([label, value]) => (
+                <div key={label} className="flex flex-col">
+                  <span className="text-xs font-semibold uppercase text-gray-500">
+                    {label}
+                  </span>
+                  <span className="text-sm font-medium">{value || "-"}</span>
+                </div>
+              ))}
             </div>
 
-            {/* ⭐ Show Rating */}
+            {/* ⭐ Rating */}
             {profileData?.rating && (
               <div className="mt-6 flex items-center space-x-2">
                 <span className="text-xs font-semibold uppercase text-gray-500">
@@ -250,7 +199,7 @@ export default function WorkerPage() {
                     <Star
                       key={star}
                       className={`h-5 w-5 ${
-                        profileData.rating && profileData.rating >= star
+                        (profileData?.rating || 0) >= star
                           ? "text-yellow-400 fill-yellow-400"
                           : "text-gray-300"
                       }`}
@@ -260,34 +209,84 @@ export default function WorkerPage() {
               </div>
             )}
 
-            {profileData?.licenses && profileData.licenses.length > 0 && (
+            {/* 📜 Dokumen */}
+            {(profileData?.license1 ||
+              profileData?.license2 ||
+              profileData?.sik) && (
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {profileData.licenses.map((licenseUrl, index) => (
-                  <div key={index} className="flex flex-col items-center">
+                {profileData?.license1 && (
+                  <div className="flex flex-col items-center">
                     <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
-                      {index === 0 ? "Lisensi" : `Sertifikat ${index}`}
+                      Lisensi
                     </h3>
-                    <Image
-                      src={licenseUrl}
-                      alt={index === 0 ? "Lisensi" : `Sertifikat ${index}`}
-                      className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
-                      width={600}
-                      height={400}
-                    />
+                    {profileData.license1.endsWith(".pdf") ? (
+                      <a
+                        href={profileData.license1}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm"
+                      >
+                        View Lisensi (PDF)
+                      </a>
+                    ) : (
+                      <Image
+                        src={profileData.license1}
+                        alt="Lisensi"
+                        className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                        width={600}
+                        height={400}
+                      />
+                    )}
                   </div>
-                ))}
+                )}
+                {profileData?.license2 && (
+                  <div className="flex flex-col items-center">
+                    <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
+                      Sertifikat
+                    </h3>
+                    {profileData.license2.endsWith(".pdf") ? (
+                      <a
+                        href={profileData.license2}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm"
+                      >
+                        View Sertifikat (PDF)
+                      </a>
+                    ) : (
+                      <Image
+                        src={profileData.license2}
+                        alt="Sertifikat"
+                        className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                        width={600}
+                        height={400}
+                      />
+                    )}
+                  </div>
+                )}
                 {profileData?.sik && (
                   <div className="flex flex-col items-center">
                     <h3 className="text-sm font-semibold uppercase text-gray-500 mb-2">
                       SIK
                     </h3>
-                    <Image
-                      src={profileData.sik}
-                      alt="SIK"
-                      className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
-                      width={600}
-                      height={400}
-                    />
+                    {profileData.sik.endsWith(".pdf") ? (
+                      <a
+                        href={profileData.sik}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm"
+                      >
+                        View SIK (PDF)
+                      </a>
+                    ) : (
+                      <Image
+                        src={profileData.sik}
+                        alt="SIK"
+                        className="w-full h-auto rounded-xl shadow-lg border border-gray-200 object-cover"
+                        width={600}
+                        height={400}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -304,9 +303,11 @@ export default function WorkerPage() {
           </p>
         </footer>
       </div>
-      {canReadDelete && (
+
+      {/* Tombol edit hanya jika role = SPV/Head */}
+      {canReadDelete && profileData?.id && (
         <Link
-          href={`/worker/edit/${profileData?.id}`}
+          href={`/worker/${profileData.id}/edit`}
           className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg flex items-center justify-center"
           title="Edit Worker"
         >

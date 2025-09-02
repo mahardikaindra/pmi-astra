@@ -28,17 +28,18 @@ function PageComponent() {
     photo: "",
     sik: "",
     information: "",
-    licenses: [] as string[],
-    rating: 0, // ⭐ tambahkan rating
+    license1: "",
+    license2: "",
+    rating: 0,
   });
 
   const [photo, setPhoto] = useState<File | null>(null);
   const [sik, setSik] = useState<File | null>(null);
-  const [licenses, setLicenses] = useState<File[]>([]);
+  const [license1, setLicense1] = useState<File | null>(null);
+  const [license2, setLicense2] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // ✅ taruh helper function di atas, bukan di bawah useEffect
   const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("token");
@@ -88,12 +89,6 @@ function PageComponent() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFileArrayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setLicenses(Array.from(e.target.files));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -115,19 +110,29 @@ function PageComponent() {
         sikURL = await getDownloadURL(sikRef);
       }
 
-      // Upload Licenses (replace kalau upload baru)
-      let licensesURL: string[] = form.licenses || [];
-      if (licenses.length > 0) {
-        licensesURL = [];
-        for (const file of licenses) {
-          const fileRef = ref(storage, `workers/${id}/licenses/${file.name}`);
-          await uploadBytes(fileRef, file);
-          const url = await getDownloadURL(fileRef);
-          licensesURL.push(url);
-        }
+      // Upload License 1
+      let license1URL = form.license1;
+      if (license1) {
+        const fileRef = ref(
+          storage,
+          `workers/${id}/licenses/license1-${license1.name}`,
+        );
+        await uploadBytes(fileRef, license1);
+        license1URL = await getDownloadURL(fileRef);
       }
 
-      // Simpan update ke Firestore (pakai id dari URL, bukan form.id)
+      // Upload License 2
+      let license2URL = form.license2;
+      if (license2) {
+        const fileRef = ref(
+          storage,
+          `workers/${id}/licenses/license2-${license2.name}`,
+        );
+        await uploadBytes(fileRef, license2);
+        license2URL = await getDownloadURL(fileRef);
+      }
+
+      // Simpan update ke Firestore
       const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/users/${id}`);
 
       await setDoc(
@@ -138,8 +143,9 @@ function PageComponent() {
           point_reward: Number(form.point_reward),
           photo: photoURL || "",
           sik: sikURL || "",
-          licenses: licensesURL || [],
-          rating: Number(form.rating), // ⭐ simpan rating
+          license1: license1URL || "",
+          license2: license2URL || "",
+          rating: Number(form.rating),
         }),
       );
 
@@ -170,7 +176,7 @@ function PageComponent() {
             Edit Worker
           </h1>
 
-          {/* Avatar and Edit Button */}
+          {/* Avatar */}
           <div className="flex justify-center mb-8">
             <div className="relative">
               <Image
@@ -284,6 +290,7 @@ function PageComponent() {
                 className="hidden"
               />
 
+              {/* SIK */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   SIK
@@ -294,79 +301,103 @@ function PageComponent() {
                   onChange={(e) => e.target.files && setSik(e.target.files[0])}
                   className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-50 file:text-green-600 hover:file:bg-green-100"
                 />
+                {form.sik && (
+                  <div className="mt-2">
+                    {form.sik.endsWith(".pdf") ? (
+                      <a
+                        href={form.sik}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm"
+                      >
+                        View SIK (PDF)
+                      </a>
+                    ) : (
+                      <Image
+                        src={form.sik}
+                        alt="SIK"
+                        width={96}
+                        height={96}
+                        className="rounded-lg"
+                      />
+                    )}
+                  </div>
+                )}
               </div>
 
+              {/* License 1 */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Licenses
+                  License 1
                 </label>
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  multiple
-                  onChange={handleFileArrayChange}
+                  onChange={(e) =>
+                    e.target.files && setLicense1(e.target.files[0])
+                  }
                   className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-600 hover:file:bg-purple-100"
                 />
+                {form.license1 && (
+                  <div className="mt-2">
+                    {form.license1.endsWith(".pdf") ? (
+                      <a
+                        href={form.license1}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm"
+                      >
+                        View License 1 (PDF)
+                      </a>
+                    ) : (
+                      <Image
+                        src={form.license1}
+                        alt="License 1"
+                        width={96}
+                        height={96}
+                        className="rounded-lg"
+                      />
+                    )}
+                  </div>
+                )}
               </div>
 
-              {form.sik && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    Current SIK:
-                  </p>
-                  {form.sik.endsWith(".pdf") ? (
-                    <a
-                      href={form.sik}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      View SIK (PDF)
-                    </a>
-                  ) : (
-                    <Image
-                      width={96}
-                      height={96}
-                      src={form.sik}
-                      alt="Current SIK"
-                      className="w-32 h-32 object-cover rounded-lg"
-                    />
-                  )}
-                </div>
-              )}
-
-              {form.licenses && form.licenses.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-600 mb-2">
-                    Current Licenses:
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {form.licenses.map((licenseUrl, index) => (
-                      <div key={index} className="relative group">
-                        {licenseUrl.endsWith(".pdf") ? (
-                          <a
-                            href={licenseUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-full h-24 bg-gray-200 rounded-lg flex items-center justify-center text-blue-600 hover:underline text-xs"
-                          >
-                            View PDF {index + 1}
-                          </a>
-                        ) : (
-                          <Image
-                            width={96}
-                            height={96}
-                            src={licenseUrl}
-                            alt={`License ${index + 1}`}
-                            className="w-full
-                            h-24 object-cover rounded-lg"
-                          />
-                        )}
-                      </div>
-                    ))}
+              {/* License 2 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  License 2
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    e.target.files && setLicense2(e.target.files[0])
+                  }
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-600 hover:file:bg-purple-100"
+                />
+                {form.license2 && (
+                  <div className="mt-2">
+                    {form.license2.endsWith(".pdf") ? (
+                      <a
+                        href={form.license2}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline text-sm"
+                      >
+                        View License 2 (PDF)
+                      </a>
+                    ) : (
+                      <Image
+                        src={form.license2}
+                        alt="License 2"
+                        width={96}
+                        height={96}
+                        className="rounded-lg"
+                      />
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Submit Button */}
