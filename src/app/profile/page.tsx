@@ -6,8 +6,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import CustomPopup from "@/components/CustomPopUp";
+import dynamic from "next/dynamic";
 
-export default function ProfilePage() {
+function PageComponent() {
   const router = useRouter();
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -16,9 +17,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-    }
+    if (!token) router.push("/");
   }, [router]);
 
   useEffect(() => {
@@ -120,3 +119,10 @@ export default function ProfilePage() {
     </>
   );
 }
+
+
+const ProfilePage = dynamic(() => Promise.resolve(PageComponent), {
+  ssr: false,
+});
+
+export default ProfilePage;

@@ -1,18 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import Header from "@/components/Header";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import dynamic from "next/dynamic";
 
-export default function HomePage() {
+function PageComponent() {
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/");
-    }
+    if (!token) router.push("/");
   }, [router]);
 
   return (
@@ -38,3 +36,10 @@ export default function HomePage() {
     </>
   );
 }
+
+
+const DashboardPage = dynamic(() => Promise.resolve(PageComponent), {
+  ssr: false,
+});
+
+export default DashboardPage;
