@@ -18,7 +18,7 @@ export default function CustomPopup({
   cancelText = "Cancel",
 }: CustomPopupProps) {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-100">
       <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm animate-fade-in">
         <h2 className="text-lg font-bold text-gray-800">{title}</h2>
         <p className="text-sm text-gray-600 mt-2">{message}</p>

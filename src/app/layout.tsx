@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "./theme-provider";
 import "../styles/globals.css";
 import { Roboto } from "next/font/google";
+import TabBar from "@/components/TabBar";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -21,10 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${roboto.className} antialiased`}
-      >
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className={`${roboto.className} antialiased`}>
+        <ThemeProvider>
+          {children}
+          <TabBar />
+        </ThemeProvider>
       </body>
     </html>
   );

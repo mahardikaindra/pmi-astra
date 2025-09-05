@@ -8,7 +8,6 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import { Eye, EyeOff } from "lucide-react";
 import { db } from "../../firebaseConfig";
-import { collection, query, where, getDocs } from "firebase/firestore";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
@@ -53,6 +52,7 @@ export default function LoginPage() {
         localStorage.setItem("role", role);
         localStorage.setItem("email", email);
         localStorage.setItem("token", (user as any).accessToken);
+        localStorage.setItem("user", JSON.stringify(user));
 
         router.push("/worker");
       } else {

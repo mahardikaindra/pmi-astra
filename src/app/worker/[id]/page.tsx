@@ -308,7 +308,7 @@ export default function WorkerPage() {
       {canReadDelete && profileData?.id && (
         <Link
           href={`/worker/${profileData.id}/edit`}
-          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg flex items-center justify-center"
+          className="fixed bottom-6 right-6 bg-[#002D62] hover:bg-[#002D62] text-white p-4 rounded-full shadow-lg flex items-center justify-center"
           title="Edit Worker"
         >
           <Pencil className="h-6 w-6" />

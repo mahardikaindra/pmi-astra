@@ -1,5 +1,5 @@
 import React from "react";
-import ThemeToggle from "./ThemeToggle";
+// import ThemeToggle from "./ThemeToggle";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/app/theme-provider";
@@ -33,14 +33,14 @@ const Header = ({ hasBack }: HeaderProps) => {
         className="object-contain h-auto"
       />
       <div className="flex items-center space-x-4">
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
         {token && (
           <button
             onClick={() => {
               localStorage.removeItem("token");
               router.push("/");
             }}
-            className="mr-4 p-2 rounded-lg hover:bg-red-200 dark:hover:bg-red-700 transition"
+            className="mr-4 p-2 rounded-lg hover:bg-[#002D62] dark:hover:bg-[#002D62] transition"
           >
             <LogOut size={24} />
           </button>

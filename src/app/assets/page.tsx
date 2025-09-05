@@ -12,30 +12,32 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { Pencil, Trash2, QrCode } from "lucide-react";
+import { Pencil, Trash2, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useTheme } from "../theme-provider";
+import { Timestamp } from "firebase/firestore";
 import CustomPopup from "@/components/CustomPopUp";
 
-interface Worker {
+interface Assets {
   id?: string;
-  name: string;
-  age: number;
-  area: string;
-  contractor: string;
-  point_reward: number;
-  position: string;
-  punishment: string;
-  photo?: string;
-  sik?: string;
-  rating?: number;
-  information?: string;
-  licenses?: string[];
+  address?: string;
+  assets: string;
+  condition: number;
+  facility: string;
+  floor: string;
+  initial_date: Timestamp;
+  last_maintenance: Timestamp;
+  last_replace_part: string;
+  image?: string;
+  merk?: string;
+  technical_data?: number;
+  latitude?: string;
+  longitude?: string;
 }
 
-export default function WorkersPage() {
-  const [workers, setWorkers] = useState<Worker[]>([]);
+export default function AssetsPage() {
+  const [assets, setAssets] = useState<Assets[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { theme } = useTheme();
@@ -44,7 +46,7 @@ export default function WorkersPage() {
 
   // 👉 tambahan state untuk popup
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [selectedAssets, setSelectedAssets] = useState<Assets | null>(null);
 
   // 🔐 Cek user login dan ambil role dari Firestore
   useEffect(() => {
@@ -79,17 +81,17 @@ export default function WorkersPage() {
 
   const fetchWorkers = async () => {
     try {
-      const usersCol = collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/users");
+      const usersCol = collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/assets");
       const usersSnap = await getDocs(usersCol);
 
-      const workersData: Worker[] = usersSnap.docs.map((docSnap) => {
-        const data = docSnap.data() as Worker;
+      const assetsData: Assets[] = usersSnap.docs.map((docSnap) => {
+        const data = docSnap.data() as Assets;
         return { id: docSnap.id, ...data };
       });
 
-      setWorkers(workersData);
+      setAssets(assetsData);
     } catch (e) {
-      console.error("Error fetching workers:", e);
+      console.error("Error fetching assets:", e);
     } finally {
       setLoading(false);
     }
@@ -97,32 +99,32 @@ export default function WorkersPage() {
 
   // ✅ confirm delete
   const handleConfirm = async () => {
-    if (!selectedWorker?.id) return;
+    if (!selectedAssets?.id) return;
 
     try {
       const docRef = doc(
         db,
-        `artifacts/Ij8HEOktiALS0zjKB3ay/users/${selectedWorker.id}`,
+        `artifacts/Ij8HEOktiALS0zjKB3ay/assets/${selectedAssets.id}`,
       );
       await deleteDoc(docRef);
 
-      setWorkers((prev) => prev.filter((w) => w.id !== selectedWorker.id));
+      setAssets((prev) => prev.filter((w) => w.id !== selectedAssets.id));
       setIsOpen(false);
-      setSelectedWorker(null);
-      alert("Worker berhasil dihapus ✅");
+      setSelectedAssets(null);
+      alert("Assets berhasil dihapus ✅");
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Gagal menghapus worker ❌");
+      alert("Gagal menghapus assets ❌");
     }
   };
 
-  const generateQRCode = (worker: Worker) => {
-    const workerUrl = `https://pmi-astra.vercel.app/worker/${worker.id}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-      workerUrl,
-    )}&size=200x200`;
-
-    window.open(qrCodeUrl, "_blank");
+  const openLocation = (assets: Assets) => {
+    if (assets.latitude && assets.longitude) {
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${assets.latitude},${assets.longitude}`;
+      window.open(mapsUrl, "_blank");
+    } else {
+      alert("Lokasi tidak tersedia untuk assets ini.");
+    }
   };
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
@@ -135,7 +137,7 @@ export default function WorkersPage() {
       <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4`}>
         <input
           type="text"
-          placeholder="Search workers by name or ID..."
+          placeholder="Search assets by assets or ID..."
           className={`w-full p-2 pl-10 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             theme === "light"
               ? "text-black border-gray-300"
@@ -149,37 +151,40 @@ export default function WorkersPage() {
       <div className="min-h-screen bg-gray-100 p-4">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-xl font-bold mb-4 text-gray-800">
-            Daftar Pegawai
+            Daftar Assets
           </h1>
           {canReadDelete && (
             <Link
-              href="/worker/add"
+              href="/assets/add"
               className="bg-[#002D62] text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
             >
-              + Add Worker
+              + Add Assets
             </Link>
           )}
         </div>
-        <div className="space-y-4 mb-12">
-          {workers
+
+        <div className="space-y-4">
+          {assets
             .filter(
-              (worker) =>
-                worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (worker.id &&
-                  worker.id.toLowerCase().includes(searchTerm.toLowerCase())),
+              (assets) =>
+                assets.assets
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase()) ||
+                (assets.id &&
+                  assets.id.toLowerCase().includes(searchTerm.toLowerCase())),
             )
-            .map((worker) => (
+            .map((assets) => (
               <div
-                key={worker.id}
-                onClick={() => router.push(`/worker/${worker.id}`)}
+                key={assets.id}
+                onClick={() => router.push(`/assets/${assets.id}`)}
                 className="bg-white shadow rounded-xl p-4 flex items-center gap-4 cursor-pointer"
               >
-                {/* Foto Worker */}
-                <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
-                  {worker.photo ? (
+                {/* Foto Assets */}
+                <div className="w-16 h-16 bg-gray-200 overflow-hidden">
+                  {assets.image ? (
                     <Image
-                      src={worker.photo}
-                      alt={worker.name}
+                      src={assets.image}
+                      alt={assets.assets}
                       width={64}
                       height={64}
                       className="w-full h-full object-cover"
@@ -191,21 +196,12 @@ export default function WorkersPage() {
                   )}
                 </div>
 
-                {/* Info Worker */}
+                {/* Info Assets */}
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold text-gray-800">
-                    {worker.name}
+                    {assets.assets}
                   </h2>
-                  <p className="text-sm text-gray-600">{worker.position}</p>
-                  <p className="text-xs text-gray-500">
-                    {worker.area} • {worker.contractor}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Reward: {worker.point_reward} | Age: {worker.age}
-                  </p>
-                  <p className="text-xs text-yellow-500">
-                    {"⭐".repeat(worker.rating || 0)}
-                  </p>
+                  <p className="text-sm text-gray-600">{assets.address}</p>
                 </div>
 
                 {/* Aksi */}
@@ -215,7 +211,7 @@ export default function WorkersPage() {
                 >
                   {canReadDelete && (
                     <Link
-                      href={`/worker/${worker.id}/edit`}
+                      href={`/assets/${assets.id}/edit`}
                       title="Edit"
                       className="text-gray-600 hover:text-blue-600"
                     >
@@ -225,7 +221,7 @@ export default function WorkersPage() {
                   {canReadDelete && (
                     <button
                       onClick={() => {
-                        setSelectedWorker(worker);
+                        setSelectedAssets(assets);
                         setIsOpen(true);
                       }}
                       title="Delete"
@@ -235,27 +231,26 @@ export default function WorkersPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => generateQRCode(worker)}
+                    onClick={() => openLocation(assets)}
                     title="QR Code"
                     className="text-gray-600 hover:text-green-600"
                   >
-                    <QrCode size={20} />
+                    <MapPin size={20} />
                   </button>
                 </div>
               </div>
             ))}
         </div>
       </div>
-
       {isOpen && (
         <CustomPopup
           title="Konfirmasi"
-          message={`Apakah Anda yakin ingin menghapus worker "${
-            selectedWorker?.name || ""
+          message={`Apakah Anda yakin ingin menghapus assets "${
+            selectedAssets?.assets || ""
           }"?`}
           onClose={() => {
             setIsOpen(false);
-            setSelectedWorker(null);
+            setSelectedAssets(null);
           }}
           onConfirm={handleConfirm}
           confirmText="Ya"
