@@ -1,23 +1,30 @@
-import type { NextConfig } from "next";
+import withPWAInit from "next-pwa";
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const withPWA = withPWAInit({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === "development",
+});
+
+const nextConfig = {
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
-        protocol: "https",
+        protocol: "https" as const,
         hostname: "docs.google.com",
         port: "",
         pathname: "**",
       },
       {
-        protocol: "https",
+        protocol: "https" as const,
         hostname: "i.pravatar.cc",
         port: "",
         pathname: "**",
       },
       {
-        protocol: "https",
+        protocol: "https" as const,
         hostname: "firebasestorage.googleapis.com",
         port: "",
         pathname: "**",
@@ -26,4 +33,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA(nextConfig);
