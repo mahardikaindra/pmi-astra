@@ -3,13 +3,19 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, Users, User, Box } from "lucide-react";
+import { Home, Users, User, Box, Headset } from "lucide-react";
 
 export default function TabBar() {
   const pathname = usePathname();
 
   // Initialize to false to prevent a flash of the tab bar for logged-out users.
   const [showTabBar, setShowTabBar] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    setRole(storedRole);
+  }, []);
 
   useEffect(() => {
     // This check runs on the client side after the component mounts
@@ -25,10 +31,11 @@ export default function TabBar() {
   }, [pathname]);
 
   const tabs = [
-    { href: "/dashboard", label: "Home", icon: Home },
-    { href: "/worker", label: "Workers", icon: Users },
-    { href: "/assets", label: "Assets", icon: Box },
-    { href: "/profile", label: "Profile", icon: User },
+    { href: "/dashboard", label: "Home", icon: Home, show: true },
+    { href: "/oncall", label: "On Call", icon: Headset, show: role === "Maintainer" || role === "Head" },
+    { href: "/worker", label: "Workers", icon: Users, show: true },
+    { href: "/assets", label: "Assets", icon: Box, show: true },
+    { href: "/profile", label: "Profile", icon: User, show: true },
   ];
 
   if (!showTabBar) {
@@ -41,6 +48,7 @@ export default function TabBar() {
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = pathname === tab.href;
+          if (!tab.show) return null;
           return (
             <li key={tab.href}>
               <Link

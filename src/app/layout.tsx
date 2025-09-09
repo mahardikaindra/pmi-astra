@@ -11,8 +11,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "SIKR Astra",
-  description: "Sistem Informasi Kerja Rutin Astra",
+  title: "Safety Integration Asset & Performance",
+  description: "A comprehensive system for routine work information",
 };
 
 export default function RootLayout({

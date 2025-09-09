@@ -26,7 +26,7 @@ function PageComponent() {
             className="mx-auto mb-6 object-contain"
           />
           <h1 className="text-3xl font-bold text-gray-800 dark:text-black mb-4">
-            Welcome to SIKR Astra!
+            Welcome to Safety Integration Asset & Performance!
           </h1>
           <p className="text-gray-600 dark:text-black-300 mb-6">
             Your comprehensive system for routine work information.
