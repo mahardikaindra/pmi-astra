@@ -132,7 +132,7 @@ export default function WorkersPage() {
   return (
     <>
       <Header />
-      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4`}>
+      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-20 left-0 right-0 z-20`}>
         <input
           type="text"
           placeholder="Search workers by name or ID..."
@@ -146,8 +146,8 @@ export default function WorkersPage() {
         />
       </div>
 
-      <div className="min-h-screen bg-gray-100 p-4">
-        <div className="flex items-center justify-between mb-6">
+      <div className="min-h-screen bg-gray-100 p-4 top-32 pt-45">
+        <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-bold mb-4 text-gray-800">
             Daftar Pegawai
           </h1>

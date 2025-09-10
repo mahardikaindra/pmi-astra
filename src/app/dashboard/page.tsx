@@ -16,7 +16,7 @@ function PageComponent() {
   return (
     <>
       <Header />
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-100 p-4">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-100 p-4 top-32 pt-15">
         <div className="bg-white dark:bg-white rounded-2xl shadow-lg p-8 text-center max-w-md w-full">
           <Image
             src="/icon_bar.png"

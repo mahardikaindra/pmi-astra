@@ -149,7 +149,7 @@ export default function WorkerPage() {
   return (
     <>
       <Header hasBack />
-      <div className="bg-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 font-sans antialiased">
+      <div className="bg-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 font-sans antialiased top-32 pt-30 z-0">
         <div className="w-full max-w-xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden mb-8">
           <div
             className="relative w-full h-80 bg-cover bg-center rounded-t-2xl flex items-end justify-center pb-4"

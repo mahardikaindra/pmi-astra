@@ -87,7 +87,7 @@ function PageComponent() {
   return (
     <>
       <Header hasBack />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center top-32 pt-30 z-0">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Tambah Asset</h1>
 

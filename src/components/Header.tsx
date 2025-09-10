@@ -15,7 +15,7 @@ const Header = ({ hasBack }: HeaderProps) => {
   const { theme } = useTheme();
   return (
     <header
-      className={`flex justify-between items-center p-4 shadow-md ${theme === "light" ? "bg-white text-black" : "bg-[#1A1A1A] text-white"}`}
+      className={`flex justify-between z-10 fixed top-0 left-0 right-0 items-center p-4 shadow-md ${theme === "light" ? "bg-white text-black" : "bg-[#1A1A1A] text-white"}`}
     >
       {hasBack && (
         <button
