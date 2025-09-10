@@ -12,7 +12,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { Pencil, Trash2, MapPin } from "lucide-react";
+import { Pencil, Trash2, MapPin, QrCode } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useTheme } from "../theme-provider";
@@ -127,6 +127,15 @@ export default function AssetsPage() {
     }
   };
 
+    const generateQRCode = (assets: Assets) => {
+      const assetsUrl = `https://pmi-astra.vercel.app/assets/${assets.id}`;
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+        assetsUrl,
+      )}&size=200x200`;
+
+      window.open(qrCodeUrl, "_blank");
+    };
+
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
   const canReadDelete = role === "SPV" || role === "Head";
@@ -236,6 +245,13 @@ export default function AssetsPage() {
                     className="text-gray-600 hover:text-green-600"
                   >
                     <MapPin size={20} />
+                  </button>
+                  <button
+                    onClick={() => generateQRCode(assets)}
+                    title="QR Code"
+                    className="text-gray-600 hover:text-purple-600"
+                  >
+                    <QrCode size={20} />
                   </button>
                 </div>
               </div>

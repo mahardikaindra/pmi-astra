@@ -160,7 +160,7 @@ export default function ViewAssetPage() {
                 ["Aset", assetData?.assets],
                 ["Merk", assetData?.merk],
                 ["Fasilitas", assetData?.facility],
-                ["Lantai", assetData?.floor],
+                // ["Lantai", assetData?.floor],
                 ["Kondisi", assetData?.condition],
                 ["Part Diganti", assetData?.last_replace_part],
                 // ["Latitude", assetData?.latitude],

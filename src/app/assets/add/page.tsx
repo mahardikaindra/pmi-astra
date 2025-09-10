@@ -54,6 +54,7 @@ function PageComponent() {
       await addDoc(collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/assets"), {
         ...form,
         image: imageURL,
+        floor: "",
       });
 
       alert("Asset berhasil disimpan ✅");
@@ -88,7 +89,7 @@ function PageComponent() {
       <Header hasBack />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Asset</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">Tambah Asset</h1>
 
           {/* Upload Image */}
           <div className="flex justify-center mb-8">
@@ -129,7 +130,7 @@ function PageComponent() {
                 "assets",
                 "condition",
                 "facility",
-                "floor",
+                // "floor",
                 "last_replace_part",
                 "latitude",
                 "longitude",
