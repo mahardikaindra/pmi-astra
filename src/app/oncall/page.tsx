@@ -119,7 +119,7 @@ export default function OnCallPage() {
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
-  const canReadDelete = role === "SPV" || role === "Head";
+  const canReadDelete = role === "Maintainer" || role === "Head";
 
   return (
     <>
@@ -143,14 +143,14 @@ export default function OnCallPage() {
           <h1 className="text-xl font-bold mb-4 text-gray-800">
             Daftar On Call Me
           </h1>
-          {/* {canReadDelete && (
+          {canReadDelete && (
             <Link
               href="/oncall/add"
               className="bg-[#002D62] text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
             >
               + Add OnCall
             </Link>
-          )} */}
+          )}
         </div>
         <div className="space-y-4 mb-12">
           {workers

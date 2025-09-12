@@ -19,10 +19,10 @@ function PageComponent() {
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gray-50 dark:bg-gray-100 p-4 top-32 pt-15">
         <div className="bg-white dark:bg-white rounded-2xl shadow-lg p-8 text-center max-w-md w-full">
           <Image
-            src="/icon_bar.png"
+            src="/SIAP.png"
             alt="Astra Logo"
             width={200}
-            height={100}
+            height={80}
             className="mx-auto mb-6 object-contain"
           />
           <h1 className="text-3xl font-bold text-gray-800 dark:text-black mb-4">

@@ -26,9 +26,9 @@ const Header = ({ hasBack }: HeaderProps) => {
         </button>
       )}
       <Image
-        src={theme === "light" ? "/icon_bar.png" : "/icon_bar_white.png"}
+        src={theme === "light" ? "/SIAP.png" : "/SIAP.png"}
         alt="Astra Logo"
-        width={200}
+        width={100}
         height={50}
         className="object-contain h-auto"
       />
