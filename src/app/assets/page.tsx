@@ -143,7 +143,7 @@ export default function AssetsPage() {
   return (
     <>
       <Header />
-      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-20 left-0 right-0 z-20`}>
+      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}>
         <input
           type="text"
           placeholder="Search assets by assets or ID..."

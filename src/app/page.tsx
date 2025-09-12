@@ -71,7 +71,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image
-            src="/icon_bar.png"
+            src="/SIAP.png"
             alt="Astra Logo"
             width={200}
             height={50}
