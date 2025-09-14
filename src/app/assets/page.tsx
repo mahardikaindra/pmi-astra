@@ -127,14 +127,14 @@ export default function AssetsPage() {
     }
   };
 
-    const generateQRCode = (assets: Assets) => {
-      const assetsUrl = `https://pmi-astra.vercel.app/assets/${assets.id}`;
-      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-        assetsUrl,
-      )}&size=200x200`;
+  const generateQRCode = (assets: Assets) => {
+    const assetsUrl = `https://pmi-astra.vercel.app/assets/${assets.id}`;
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+      assetsUrl,
+    )}&size=200x200`;
 
-      window.open(qrCodeUrl, "_blank");
-    };
+    window.open(qrCodeUrl, "_blank");
+  };
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
@@ -143,7 +143,9 @@ export default function AssetsPage() {
   return (
     <>
       <Header />
-      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}>
+      <div
+        className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}
+      >
         <input
           type="text"
           placeholder="Search assets by assets or ID..."

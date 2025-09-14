@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { db, storage } from "../../../../firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
-function AddRoutinePage() {
+function PageComponent() {
   const router = useRouter();
   const [form, setForm] = useState({
     jalan_tol: "",
@@ -24,8 +23,24 @@ function AddRoutinePage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  const getLocalStorageToken = () => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("token");
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const token = getLocalStorageToken();
+    if (!token) {
+      router.push("/");
+    }
+  }, [router]);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -43,12 +58,20 @@ function AddRoutinePage() {
     try {
       let fileUrl = "";
       if (form.dokumentasi) {
-        const fileRef = ref(storage, `routine/${Date.now()}-${form.dokumentasi.name}`);
+        const fileRef = ref(
+          storage,
+          `routine/${Date.now()}-${form.dokumentasi.name}`,
+        );
         await uploadBytes(fileRef, form.dokumentasi);
         fileUrl = await getDownloadURL(fileRef);
       }
 
-      const colRef = collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "routine");
+      const colRef = collection(
+        db,
+        "artifacts",
+        "Ij8HEOktiALS0zjKB3ay",
+        "routine",
+      );
       await addDoc(colRef, {
         ...form,
         dokumentasi: fileUrl,
@@ -74,9 +97,11 @@ function AddRoutinePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Jalan Tol */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Jalan Tol</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Jalan Tol
+              </label>
               <input
-                type="text" 
+                type="text"
                 name="jalan_tol"
                 value={form.jalan_tol}
                 onChange={handleChange}
@@ -87,7 +112,9 @@ function AddRoutinePage() {
 
             {/* Indikator */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Indikator</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Indikator
+              </label>
               <select
                 name="indikator"
                 value={form.indikator}
@@ -107,7 +134,9 @@ function AddRoutinePage() {
             {/* Lokasi, Jalur, Lajur */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Lokasi (km)</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Lokasi (km)
+                </label>
                 <input
                   type="text"
                   name="lokasi"
@@ -118,7 +147,9 @@ function AddRoutinePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Jalur</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Jalur
+                </label>
                 <select
                   name="jalur"
                   value={form.jalur}
@@ -132,7 +163,9 @@ function AddRoutinePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Lajur</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Lajur
+                </label>
                 <select
                   name="lajur"
                   value={form.lajur}
@@ -152,7 +185,9 @@ function AddRoutinePage() {
             {/* Lat Long Akurasi */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Latitude</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Latitude
+                </label>
                 <input
                   type="text"
                   name="latitude"
@@ -163,7 +198,9 @@ function AddRoutinePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Longitude</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Longitude
+                </label>
                 <input
                   type="text"
                   name="longitude"
@@ -174,7 +211,9 @@ function AddRoutinePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Akurasi</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Akurasi
+                </label>
                 <input
                   type="text"
                   name="akurasi"
@@ -187,7 +226,9 @@ function AddRoutinePage() {
 
             {/* Deskripsi */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Deskripsi</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Deskripsi
+              </label>
               <textarea
                 name="deskripsi"
                 value={form.deskripsi}
@@ -200,7 +241,9 @@ function AddRoutinePage() {
 
             {/* Dokumentasi */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Dokumentasi</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Dokumentasi
+              </label>
               <input
                 type="file"
                 accept="image/*"
@@ -208,7 +251,9 @@ function AddRoutinePage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
               />
               {form.dokumentasi && (
-                <p className="text-sm text-gray-500 mt-1">{form.dokumentasi.name}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {form.dokumentasi.name}
+                </p>
               )}
             </div>
 
@@ -230,5 +275,9 @@ function AddRoutinePage() {
     </>
   );
 }
+
+const AddRoutinePage = dynamic(() => Promise.resolve(PageComponent), {
+  ssr: false,
+});
 
 export default AddRoutinePage;

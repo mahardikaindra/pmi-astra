@@ -108,15 +108,6 @@ export default function OnCallPage() {
     }
   };
 
-  const generateQRCode = (oncall: OnCall) => {
-    const workerUrl = `https://pmi-astra.vercel.app/oncall/${oncall.id}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-      workerUrl,
-    )}&size=200x200`;
-
-    window.open(qrCodeUrl, "_blank");
-  };
-
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
   const canReadDelete = role === "Maintainer" || role === "Head";
@@ -124,7 +115,9 @@ export default function OnCallPage() {
   return (
     <>
       <Header />
-      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}>
+      <div
+        className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}
+      >
         <input
           type="text"
           placeholder="Search oncall by name or ID..."
@@ -166,19 +159,18 @@ export default function OnCallPage() {
                 onClick={() => router.push(`/oncall/${oncall.id}`)}
                 className="bg-white shadow rounded-xl p-4 flex items-center gap-4 cursor-pointer"
               >
-
                 {/* Info OnCall */}
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold text-gray-800">
                     {oncall.group}
                   </h2>
                   <p className="text-sm text-gray-600">{oncall.location}</p>
-                
+
+                  <p className="text-xs text-gray-500">Shift: {oncall.shift}</p>
                   <p className="text-xs text-gray-500">
-                    Shift: {oncall.shift}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Tanggal: {oncall.tanggal && oncall.tanggal.toDate().toLocaleDateString()}
+                    Tanggal:{" "}
+                    {oncall.tanggal &&
+                      oncall.tanggal.toDate().toLocaleDateString()}
                   </p>
                 </div>
 

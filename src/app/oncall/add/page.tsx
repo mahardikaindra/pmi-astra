@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db } from "../../../../firebaseConfig";
-import { collection, doc, addDoc, Timestamp  } from "firebase/firestore";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -35,7 +34,7 @@ function PageComponent() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -44,7 +43,12 @@ function PageComponent() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const colRef = collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "oncall");
+      const colRef = collection(
+        db,
+        "artifacts",
+        "Ij8HEOktiALS0zjKB3ay",
+        "oncall",
+      );
 
       await addDoc(colRef, {
         ...form,
@@ -146,8 +150,6 @@ function PageComponent() {
                   <option value="Tiga">Tiga</option>
                 </select>
               </div>
-
-             
 
               {/* Departement Radio */}
               <div className="flex flex-col md:col-span-2">

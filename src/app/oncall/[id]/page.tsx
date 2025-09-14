@@ -33,13 +33,20 @@ function PageComponent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "oncall", id);
+        const docRef = doc(
+          db,
+          "artifacts",
+          "Ij8HEOktiALS0zjKB3ay",
+          "oncall",
+          id,
+        );
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           const docData = snap.data();
           setData({
             ...docData,
-            tanggal: docData.tanggal?.toDate().toLocaleDateString("id-ID") || "-",
+            tanggal:
+              docData.tanggal?.toDate().toLocaleDateString("id-ID") || "-",
           });
         }
       } catch (error) {
@@ -57,7 +64,9 @@ function PageComponent() {
   }
 
   if (!data) {
-    return <p className="pt-24 text-center text-red-500">Data tidak ditemukan ❌</p>;
+    return (
+      <p className="pt-24 text-center text-red-500">Data tidak ditemukan ❌</p>
+    );
   }
 
   return (
@@ -65,32 +74,44 @@ function PageComponent() {
       <Header hasBack />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">Detail OnCall</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">
+            Detail OnCall
+          </h1>
 
           <div className="space-y-4">
             <div>
               <p className="text-sm text-gray-500">Tanggal</p>
-              <p className="text-base font-semibold text-gray-800">{data.tanggal}</p>
+              <p className="text-base font-semibold text-gray-800">
+                {data.tanggal}
+              </p>
             </div>
 
             <div>
               <p className="text-sm text-gray-500">Group / Tim</p>
-              <p className="text-base font-semibold text-gray-800">{data.group}</p>
+              <p className="text-base font-semibold text-gray-800">
+                {data.group}
+              </p>
             </div>
 
             <div>
               <p className="text-sm text-gray-500">Lokasi</p>
-              <p className="text-base font-semibold text-gray-800">{data.location}</p>
+              <p className="text-base font-semibold text-gray-800">
+                {data.location}
+              </p>
             </div>
 
             <div>
               <p className="text-sm text-gray-500">Shift</p>
-              <p className="text-base font-semibold text-gray-800">{data.shift}</p>
+              <p className="text-base font-semibold text-gray-800">
+                {data.shift}
+              </p>
             </div>
 
             <div>
               <p className="text-sm text-gray-500">Departement</p>
-              <p className="text-base font-semibold text-gray-800">{data.departement}</p>
+              <p className="text-base font-semibold text-gray-800">
+                {data.departement}
+              </p>
             </div>
           </div>
 

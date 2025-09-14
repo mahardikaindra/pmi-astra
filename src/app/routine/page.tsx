@@ -105,15 +105,6 @@ export default function RoutinePage() {
     }
   };
 
-  const generateQRCode = (routine: Routine) => {
-    const workerUrl = `https://pmi-astra.vercel.app/routine/${routine.id}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-      workerUrl,
-    )}&size=200x200`;
-
-    window.open(qrCodeUrl, "_blank");
-  };
-
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
   const canReadDelete = role === "Maintainer" || role === "Head";
@@ -121,7 +112,9 @@ export default function RoutinePage() {
   return (
     <>
       <Header />
-      <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}>
+      <div
+        className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}
+      >
         <input
           type="text"
           placeholder="Search routine by name or ID..."
@@ -137,9 +130,7 @@ export default function RoutinePage() {
 
       <div className="min-h-screen bg-gray-100 p-4 top-32 pt-45">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-bold mb-4 text-gray-800">
-            List Routine
-          </h1>
+          <h1 className="text-xl font-bold mb-4 text-gray-800">List Routine</h1>
           {canReadDelete && (
             <Link
               href="/routine/add"
@@ -153,7 +144,9 @@ export default function RoutinePage() {
           {routine
             .filter(
               (routine) =>
-                routine.indikator.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                routine.indikator
+                  .toLowerCase()
+                  .includes(searchTerm.toLowerCase()) ||
                 (routine.id &&
                   routine.id.toLowerCase().includes(searchTerm.toLowerCase())),
             )
@@ -163,15 +156,12 @@ export default function RoutinePage() {
                 onClick={() => router.push(`/routine/${routine.id}`)}
                 className="bg-white shadow rounded-xl p-4 flex items-center gap-4 cursor-pointer"
               >
-
                 {/* Info Routine */}
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold text-gray-800">
                     {routine.indikator}
                   </h2>
-                  <p className="text-xs text-gray-500">
-                    {routine.jalan_tol}
-                  </p>
+                  <p className="text-xs text-gray-500">{routine.jalan_tol}</p>
                 </div>
 
                 {/* Aksi */}

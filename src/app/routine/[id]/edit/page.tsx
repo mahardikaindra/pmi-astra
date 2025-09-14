@@ -33,7 +33,13 @@ function EditRoutinePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "routine", id);
+        const docRef = doc(
+          db,
+          "artifacts",
+          "Ij8HEOktiALS0zjKB3ay",
+          "routine",
+          id,
+        );
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           setForm(snap.data() as any);
@@ -51,7 +57,9 @@ function EditRoutinePage() {
   }, [id, router]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -67,15 +75,25 @@ function EditRoutinePage() {
     setSubmitting(true);
 
     try {
-      let fileUrl = typeof form.dokumentasi === "string" ? form.dokumentasi : "";
+      let fileUrl =
+        typeof form.dokumentasi === "string" ? form.dokumentasi : "";
 
       if (form.dokumentasi instanceof File) {
-        const fileRef = ref(storage, `routine/${Date.now()}-${form.dokumentasi.name}`);
+        const fileRef = ref(
+          storage,
+          `routine/${Date.now()}-${form.dokumentasi.name}`,
+        );
         await uploadBytes(fileRef, form.dokumentasi);
         fileUrl = await getDownloadURL(fileRef);
       }
 
-      const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "routine", id);
+      const docRef = doc(
+        db,
+        "artifacts",
+        "Ij8HEOktiALS0zjKB3ay",
+        "routine",
+        id,
+      );
       await updateDoc(docRef, {
         ...form,
         dokumentasi: fileUrl,
@@ -93,7 +111,11 @@ function EditRoutinePage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -101,12 +123,16 @@ function EditRoutinePage() {
       <Header hasBack />
       <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Routine</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">
+            Edit Routine
+          </h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Jalan Tol */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Jalan Tol</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Jalan Tol
+              </label>
               <input
                 type="text"
                 name="jalan_tol"
@@ -118,7 +144,9 @@ function EditRoutinePage() {
 
             {/* Indikator */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Indikator</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Indikator
+              </label>
               <select
                 name="indikator"
                 value={form.indikator}
@@ -138,7 +166,9 @@ function EditRoutinePage() {
             {/* Lokasi, Jalur, Lajur */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Lokasi (km)</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Lokasi (km)
+                </label>
                 <input
                   type="text"
                   name="lokasi"
@@ -148,7 +178,9 @@ function EditRoutinePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Jalur</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Jalur
+                </label>
                 <select
                   name="jalur"
                   value={form.jalur}
@@ -161,7 +193,9 @@ function EditRoutinePage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Lajur</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Lajur
+                </label>
                 <select
                   name="lajur"
                   value={form.lajur}
@@ -180,7 +214,9 @@ function EditRoutinePage() {
             {/* Lat Long Akurasi */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Latitude</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Latitude
+                </label>
                 <input
                   type="text"
                   name="latitude"
@@ -190,7 +226,9 @@ function EditRoutinePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Longitude</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Longitude
+                </label>
                 <input
                   type="text"
                   name="longitude"
@@ -200,7 +238,9 @@ function EditRoutinePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Akurasi</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Akurasi
+                </label>
                 <input
                   type="text"
                   name="akurasi"
@@ -213,7 +253,9 @@ function EditRoutinePage() {
 
             {/* Deskripsi */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Deskripsi</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Deskripsi
+              </label>
               <textarea
                 name="deskripsi"
                 value={form.deskripsi}
@@ -225,22 +267,25 @@ function EditRoutinePage() {
 
             {/* Dokumentasi */}
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Dokumentasi</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Dokumentasi
+              </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
               />
-              {typeof form.dokumentasi === "string" && form.dokumentasi !== "" && (
-                <div className="mt-2">
-                  <Image
-                    src={form.dokumentasi}
-                    alt="Dokumentasi"
-                    className="w-32 h-32 object-cover rounded-lg border"
-                  />
-                </div>
-              )}
+              {typeof form.dokumentasi === "string" &&
+                form.dokumentasi !== "" && (
+                  <div className="mt-2">
+                    <Image
+                      src={form.dokumentasi}
+                      alt="Dokumentasi"
+                      className="w-32 h-32 object-cover rounded-lg border"
+                    />
+                  </div>
+                )}
             </div>
 
             {/* Submit */}

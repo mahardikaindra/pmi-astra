@@ -120,7 +120,6 @@ function PageComponent() {
   );
 }
 
-
 const ProfilePage = dynamic(() => Promise.resolve(PageComponent), {
   ssr: false,
 });

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
@@ -41,7 +40,13 @@ function PageComponent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "oncall", id);
+        const docRef = doc(
+          db,
+          "artifacts",
+          "Ij8HEOktiALS0zjKB3ay",
+          "oncall",
+          id,
+        );
         const snap = await getDoc(docRef);
         if (snap.exists()) {
           const data = snap.data();
@@ -66,7 +71,7 @@ function PageComponent() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };

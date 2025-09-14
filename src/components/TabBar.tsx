@@ -32,8 +32,18 @@ export default function TabBar() {
 
   const tabs = [
     { href: "/dashboard", label: "Home", icon: Home, show: true },
-    { href: "/oncall", label: "On Call", icon: Headset, show: role === "Maintainer" || role === "Head" },
-    { href: "/routine", label: "Routine", icon: Route, show: role === "Maintainer" || role === "Head" },
+    {
+      href: "/oncall",
+      label: "On Call",
+      icon: Headset,
+      show: role === "Maintainer" || role === "Head",
+    },
+    {
+      href: "/routine",
+      label: "Routine",
+      icon: Route,
+      show: role === "Maintainer" || role === "Head",
+    },
     { href: "/worker", label: "Workers", icon: Users, show: true },
     { href: "/assets", label: "Assets", icon: Box, show: true },
     { href: "/profile", label: "Profile", icon: User, show: true },

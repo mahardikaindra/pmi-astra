@@ -37,7 +37,6 @@ function PageComponent() {
   );
 }
 
-
 const DashboardPage = dynamic(() => Promise.resolve(PageComponent), {
   ssr: false,
 });
