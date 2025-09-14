@@ -16,18 +16,15 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useTheme } from "../theme-provider";
 import CustomPopup from "@/components/CustomPopUp";
-import { Timestamp } from "firebase/firestore";
 
-interface OnCall {
+interface Routine {
   id?: string;
-  group: string;
-  shift: string;
-  location: string;
-  tanggal: Timestamp;
+  indikator: string;
+  jalan_tol: string;
 }
 
-export default function OnCallPage() {
-  const [workers, setOnCall] = useState<OnCall[]>([]);
+export default function RoutinePage() {
+  const [routine, setRoutine] = useState<Routine[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { theme } = useTheme();
@@ -36,7 +33,7 @@ export default function OnCallPage() {
 
   // 👉 tambahan state untuk popup
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedWorker, setSelectedWorker] = useState<OnCall | null>(null);
+  const [selectedWorker, setSelectedWorker] = useState<Routine | null>(null);
 
   // 🔐 Cek user login dan ambil role dari Firestore
   useEffect(() => {
@@ -56,7 +53,7 @@ export default function OnCallPage() {
           setRole(userRole);
           localStorage.setItem("role", userRole);
 
-          fetchOnCall();
+          fetchRoutine();
         } else {
           router.push("/");
         }
@@ -69,19 +66,19 @@ export default function OnCallPage() {
     return () => unsubscribe();
   }, [router]);
 
-  const fetchOnCall = async () => {
+  const fetchRoutine = async () => {
     try {
-      const usersCol = collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/oncall");
+      const usersCol = collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/routine");
       const usersSnap = await getDocs(usersCol);
 
-      const oncallData: OnCall[] = usersSnap.docs.map((docSnap) => {
-        const data = docSnap.data() as OnCall;
+      const oncallData: Routine[] = usersSnap.docs.map((docSnap) => {
+        const data = docSnap.data() as Routine;
         return { id: docSnap.id, ...data };
       });
 
-      setOnCall(oncallData);
+      setRoutine(oncallData);
     } catch (e) {
-      console.error("Error fetching workers:", e);
+      console.error("Error fetching routine:", e);
     } finally {
       setLoading(false);
     }
@@ -98,18 +95,18 @@ export default function OnCallPage() {
       );
       await deleteDoc(docRef);
 
-      setOnCall((prev) => prev.filter((w) => w.id !== selectedWorker.id));
+      setRoutine((prev) => prev.filter((w) => w.id !== selectedWorker.id));
       setIsOpen(false);
       setSelectedWorker(null);
-      alert("OnCall berhasil dihapus ✅");
+      alert("Routine berhasil dihapus ✅");
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Gagal menghapus oncall ❌");
+      alert("Gagal menghapus routine ❌");
     }
   };
 
-  const generateQRCode = (oncall: OnCall) => {
-    const workerUrl = `https://pmi-astra.vercel.app/oncall/${oncall.id}`;
+  const generateQRCode = (routine: Routine) => {
+    const workerUrl = `https://pmi-astra.vercel.app/routine/${routine.id}`;
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
       workerUrl,
     )}&size=200x200`;
@@ -127,7 +124,7 @@ export default function OnCallPage() {
       <div className={`${theme === "light" ? "bg-white" : "bg-[#1A1A1A]"} p-4 fixed top-15 left-0 right-0 z-20`}>
         <input
           type="text"
-          placeholder="Search oncall by name or ID..."
+          placeholder="Search routine by name or ID..."
           className={`w-full p-2 pl-10 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             theme === "light"
               ? "text-black border-gray-300"
@@ -141,44 +138,39 @@ export default function OnCallPage() {
       <div className="min-h-screen bg-gray-100 p-4 top-32 pt-45">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-xl font-bold mb-4 text-gray-800">
-            List On Call Me
+            List Routine
           </h1>
           {canReadDelete && (
             <Link
-              href="/oncall/add"
+              href="/routine/add"
               className="bg-[#002D62] text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200 text-sm"
             >
-              + Add OnCall
+              + Add Routine
             </Link>
           )}
         </div>
         <div className="space-y-4 mb-12">
-          {workers
+          {routine
             .filter(
-              (oncall) =>
-                oncall.group.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (oncall.id &&
-                  oncall.id.toLowerCase().includes(searchTerm.toLowerCase())),
+              (routine) =>
+                routine.indikator.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (routine.id &&
+                  routine.id.toLowerCase().includes(searchTerm.toLowerCase())),
             )
-            .map((oncall) => (
+            .map((routine) => (
               <div
-                key={oncall.id}
-                onClick={() => router.push(`/oncall/${oncall.id}`)}
+                key={routine.id}
+                onClick={() => router.push(`/routine/${routine.id}`)}
                 className="bg-white shadow rounded-xl p-4 flex items-center gap-4 cursor-pointer"
               >
 
-                {/* Info OnCall */}
+                {/* Info Routine */}
                 <div className="flex-1">
                   <h2 className="text-lg font-semibold text-gray-800">
-                    {oncall.group}
+                    {routine.indikator}
                   </h2>
-                  <p className="text-sm text-gray-600">{oncall.location}</p>
-                
                   <p className="text-xs text-gray-500">
-                    Shift: {oncall.shift}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Tanggal: {oncall.tanggal && oncall.tanggal.toDate().toLocaleDateString()}
+                    {routine.jalan_tol}
                   </p>
                 </div>
 
@@ -189,7 +181,7 @@ export default function OnCallPage() {
                 >
                   {canReadDelete && (
                     <Link
-                      href={`/oncall/${oncall.id}/edit`}
+                      href={`/routine/${routine.id}/edit`}
                       title="Edit"
                       className="text-gray-600 hover:text-blue-600"
                     >
@@ -199,7 +191,7 @@ export default function OnCallPage() {
                   {canReadDelete && (
                     <button
                       onClick={() => {
-                        setSelectedWorker(oncall);
+                        setSelectedWorker(routine);
                         setIsOpen(true);
                       }}
                       title="Delete"
@@ -217,8 +209,8 @@ export default function OnCallPage() {
       {isOpen && (
         <CustomPopup
           title="Konfirmasi"
-          message={`Apakah Anda yakin ingin menghapus oncall "${
-            selectedWorker?.group || ""
+          message={`Apakah Anda yakin ingin menghapus routine "${
+            selectedWorker?.indikator || ""
           }"?`}
           onClose={() => {
             setIsOpen(false);

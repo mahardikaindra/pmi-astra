@@ -17,14 +17,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ Cek token di client side
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      if (token) {
-        router.push("/worker");
-      }
-    }
+    const token = localStorage.getItem("token");
+    if (token) router.push("/dashboard");
   }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
