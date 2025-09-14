@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, Users, User, Box, Headset, Route, ToolCase } from "lucide-react";
+import { Home, Users, User, Box, Headset, Route } from "lucide-react";
 
 export default function TabBar() {
   const pathname = usePathname();
