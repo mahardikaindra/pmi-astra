@@ -19,6 +19,7 @@ function PageComponent() {
     longitude: "",
     akurasi: "",
     deskripsi: "",
+    catatan: "",
     dokumentasi: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -232,6 +233,21 @@ function PageComponent() {
               <textarea
                 name="deskripsi"
                 value={form.deskripsi}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                rows={3}
+                required
+              ></textarea>
+            </div>
+
+            {/* Deskripsi */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Catatan
+              </label>
+              <textarea
+                name="deskripsi"
+                value={form.catatan}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
                 rows={3}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Home, Users, User, Box, Headset, Route } from "lucide-react";
+import { Home, Settings, Users, User, Box, Headset, Route } from "lucide-react";
 
 export default function TabBar() {
   const pathname = usePathname();
@@ -30,22 +30,27 @@ export default function TabBar() {
     }
   }, [pathname]);
 
+  const maintainanceRole = role && ["maintainer", "head"].includes(role?.toLowerCase());
+  const adminRole = role && role?.toLowerCase() === "admin";
+  const userRole = role && ["maintainer", "head", "spv", "lms", "hse"].includes(role?.toLowerCase());
+
   const tabs = [
     { href: "/dashboard", label: "Home", icon: Home, show: true },
+    { href: "/management", label: "Management", icon: Settings, show: adminRole },
     {
       href: "/oncall",
       label: "On Call",
       icon: Headset,
-      show: role === "Maintainer" || role === "Head",
+      show: maintainanceRole,
     },
     {
       href: "/routine",
       label: "Routine",
       icon: Route,
-      show: role === "Maintainer" || role === "Head",
+      show: maintainanceRole,
     },
-    { href: "/worker", label: "Workers", icon: Users, show: true },
-    { href: "/assets", label: "Assets", icon: Box, show: true },
+    { href: "/worker", label: "Workers", icon: Users, show: userRole },
+    { href: "/assets", label: "Assets", icon: Box, show: userRole },
     { href: "/profile", label: "Profile", icon: User, show: true },
   ];
 

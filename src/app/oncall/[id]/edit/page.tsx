@@ -1,14 +1,20 @@
 "use client";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
-import { db } from "../../../../../firebaseConfig";
-import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { db, storage } from "../../../../../firebaseConfig";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  Timestamp
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 function PageComponent() {
   const router = useRouter();
-  const params = useParams(); // ambil id dari URL
+  const params = useParams(); 
   const id = params?.id as string;
 
   const [form, setForm] = useState({
@@ -17,7 +23,11 @@ function PageComponent() {
     location: "",
     shift: "",
     departement: "",
+    catatan: "",
+    dokumentasi: null as File | null,
+    dokumentasiUrl: "",
   });
+
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +66,9 @@ function PageComponent() {
             location: data.location || "",
             shift: data.shift || "",
             departement: data.departement || "",
+            catatan: data.catatan || "",
+            dokumentasi: null,
+            dokumentasiUrl: data.dokumentasiUrl || "",
           });
         }
       } catch (error) {
@@ -73,18 +86,42 @@ function PageComponent() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.type === "file") {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        setForm({ ...form, dokumentasi: target.files[0] });
+      }
+    } else {
+      setForm({ ...form, [e.target.name]: e.target.value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      let imageUrl = form.dokumentasiUrl;
+
+      // Upload file baru kalau ada
+      if (form.dokumentasi) {
+        const storageRef = ref(
+          storage,
+          `oncall/${Date.now()}-${form.dokumentasi.name}`,
+        );
+        await uploadBytes(storageRef, form.dokumentasi);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
       const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "oncall", id);
 
       await updateDoc(docRef, {
-        ...form,
         tanggal: Timestamp.fromDate(new Date(form.tanggal)),
+        group: form.group,
+        location: form.location,
+        shift: form.shift,
+        departement: form.departement,
+        catatan: form.catatan,
+        dokumentasiUrl: imageUrl || null,
       });
 
       alert("OnCall berhasil diperbarui ✅");
@@ -136,9 +173,9 @@ function PageComponent() {
                   required
                 >
                   <option value="">-- Pilih Group --</option>
-                  <option value="On Call Barat">On Call Barat</option>
-                  <option value="On Call Timur">On Call Timur</option>
-                  <option value="Repair Replace">Repair Replace</option>
+                  <option value="ON CALL BARAT">ON CALL BARAT</option>
+                  <option value="ON CALL TIMUR">ON CALL TIMUR</option>
+                  <option value="REPAIR REPLACE">REPAIR REPLACE</option>
                 </select>
               </div>
 
@@ -201,6 +238,41 @@ function PageComponent() {
                     </label>
                   ))}
                 </div>
+              </div>
+
+              {/* Catatan */}
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Catatan
+                </label>
+                <textarea
+                  name="catatan"
+                  value={form.catatan}
+                  onChange={handleChange}
+                  placeholder="Tulis catatan tambahan..."
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 h-24"
+                />
+              </div>
+
+              {/* Dokumentasi */}
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Dokumentasi
+                </label>
+                <input
+                  type="file"
+                  name="dokumentasi"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                />
+                {form.dokumentasiUrl && (
+                  <img
+                    src={form.dokumentasiUrl}
+                    alt="Preview"
+                    className="mt-2 w-40 h-40 object-cover rounded-lg border"
+                  />
+                )}
               </div>
             </div>
 

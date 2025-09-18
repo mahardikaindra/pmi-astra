@@ -1,8 +1,13 @@
 "use client";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
-import { db } from "../../../../firebaseConfig";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { db, storage } from "../../../../firebaseConfig";
+import {
+  collection,
+  addDoc,
+  Timestamp
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -14,6 +19,8 @@ function PageComponent() {
     location: "",
     shift: "",
     departement: "",
+    catatan: "",
+    dokumentasi: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,13 +43,32 @@ function PageComponent() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.type === "file") {
+      const target = e.target as HTMLInputElement;
+      if (target.files && target.files[0]) {
+        setForm({ ...form, [e.target.name]: target.files[0] });
+      }
+    } else {
+      setForm({ ...form, [e.target.name]: e.target.value });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      let imageUrl = "";
+
+      // Upload gambar ke Firebase Storage kalau ada
+      if (form.dokumentasi) {
+        const storageRef = ref(
+          storage,
+          `oncall/${Date.now()}-${form.dokumentasi.name}`,
+        );
+        await uploadBytes(storageRef, form.dokumentasi);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
       const colRef = collection(
         db,
         "artifacts",
@@ -51,8 +77,13 @@ function PageComponent() {
       );
 
       await addDoc(colRef, {
-        ...form,
         tanggal: Timestamp.fromDate(new Date(form.tanggal)),
+        group: form.group,
+        location: form.location,
+        shift: form.shift,
+        departement: form.departement,
+        catatan: form.catatan,
+        dokumentasiUrl: imageUrl || null,
       });
 
       alert("OnCall berhasil disimpan ✅");
@@ -64,6 +95,8 @@ function PageComponent() {
         location: "",
         shift: "",
         departement: "",
+        catatan: "",
+        dokumentasi: null,
       });
     } catch (error) {
       console.error("Error saving worker:", error);
@@ -175,6 +208,34 @@ function PageComponent() {
                     </label>
                   ))}
                 </div>
+              </div>
+
+              {/* Catatan */}
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Catatan
+                </label>
+                <textarea
+                  name="catatan"
+                  value={form.catatan}
+                  onChange={handleChange}
+                  placeholder="Tulis catatan tambahan di sini..."
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Dokumentasi (Upload Gambar) */}
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Dokumentasi
+                </label>
+                <input
+                  type="file"
+                  name="dokumentasi"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                />
               </div>
             </div>
 

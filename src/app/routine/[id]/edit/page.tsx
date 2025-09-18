@@ -23,6 +23,7 @@ function EditRoutinePage() {
     longitude: "",
     akurasi: "",
     deskripsi: "",
+    catatan: "",
     dokumentasi: "" as string | File,
   });
 
@@ -265,6 +266,19 @@ function EditRoutinePage() {
               ></textarea>
             </div>
 
+{/* Catatan */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Catatan
+              </label>
+              <textarea
+                name="catatan"
+                value={form.catatan}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                rows={3}
+              ></textarea>
+            </div>
             {/* Dokumentasi */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
