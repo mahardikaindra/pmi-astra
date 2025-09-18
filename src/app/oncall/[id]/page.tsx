@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import Image from "next/image";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db } from "../../../../firebaseConfig";
@@ -101,11 +102,31 @@ function PageComponent() {
                 {data.departement}
               </p>
             </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Catatan</p>
+              <p className="text-base font-medium text-gray-800">
+                {data.catatan || "-"}
+              </p>
+            </div>
+            
+            {data.dokumentasi && (
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Dokumentasi</p>
+                <Image
+                  height={240}
+                  width={240}
+                  src={data.dokumentasi}
+                  alt="Dokumentasi"
+                  className="w-60 h-60 object-cover rounded-lg border"
+                />
+              </div>
+            )}  
           </div>
 
           <div className="mt-8 flex justify-end">
             <button
-              onClick={() => router.push(`/oncall/edit/${id}`)}
+              onClick={() => router.push(`/oncall/${id}/edit`)}
               className="px-4 py-2 rounded-lg bg-[#002D62] text-white hover:bg-blue-700"
             >
               Edit Data
