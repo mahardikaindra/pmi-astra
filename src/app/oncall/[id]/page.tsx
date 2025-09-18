@@ -121,6 +121,18 @@ function PageComponent() {
                   className="w-60 h-60 object-cover rounded-lg border"
                 />
               </div>
+            )}
+            {data.p2hUrl && (
+              <div>
+                <p className="text-sm text-gray-500 mb-1">P2H</p>
+                <Image
+                  height={240}
+                  width={240}
+                  src={data.p2hUrl}
+                  alt="P2H"
+                  className="w-60 h-60 object-cover rounded-lg border"
+                />
+              </div>
             )}  
           </div>
 

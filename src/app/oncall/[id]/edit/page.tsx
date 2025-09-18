@@ -26,6 +26,8 @@ function PageComponent() {
     departement: "",
     catatan: "",
     dokumentasi: null as File | null,
+    p2h: null as File | null,
+    p2hUrl: "",
     dokumentasiUrl: "",
   });
 
@@ -70,6 +72,8 @@ function PageComponent() {
             catatan: data.catatan || "",
             dokumentasi: null,
             dokumentasiUrl: data.dokumentasiUrl || "",
+            p2h: null,
+            p2hUrl: data.p2hUrl || "",
           });
         }
       } catch (error) {
@@ -102,6 +106,7 @@ function PageComponent() {
     setSubmitting(true);
     try {
       let imageUrl = form.dokumentasiUrl;
+      let p2hUrl = form.p2hUrl;
 
       // Upload file baru kalau ada
       if (form.dokumentasi) {
@@ -111,6 +116,15 @@ function PageComponent() {
         );
         await uploadBytes(storageRef, form.dokumentasi);
         imageUrl = await getDownloadURL(storageRef);
+      }
+
+      if (form.p2h) {
+        const storageRef = ref(
+          storage,
+          `p2h/${Date.now()}-${form.p2h.name}`,
+        );
+        await uploadBytes(storageRef, form.p2h);
+        p2hUrl = await getDownloadURL(storageRef);
       }
 
       const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "oncall", id);
@@ -123,6 +137,7 @@ function PageComponent() {
         departement: form.departement,
         catatan: form.catatan,
         dokumentasiUrl: imageUrl || null,
+        p2hUrl: p2hUrl || null,
       });
 
       alert("OnCall berhasil diperbarui ✅");
@@ -277,6 +292,31 @@ function PageComponent() {
                   />
                 )}
               </div>
+
+              {/* P2H (Tampilkan jika ada) */}
+              {form.p2hUrl && (
+                <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  P2H
+                </label>
+                <input
+                  type="file"
+                  name="p2h"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                />
+                {form.p2hUrl && (
+                  <Image
+                    height={160}
+                    width={160}
+                    src={form.p2hUrl}
+                    alt="Preview"
+                    className="mt-2 w-40 h-40 object-cover rounded-lg border"
+                  />
+                )}
+              </div>
+              )}
             </div>
 
             {/* Submit Button */}

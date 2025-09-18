@@ -21,6 +21,7 @@ function PageComponent() {
     departement: "",
     catatan: "",
     dokumentasi: null as File | null,
+    p2h: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -58,6 +59,7 @@ function PageComponent() {
     setSubmitting(true);
     try {
       let imageUrl = "";
+      let p2hUrl = "";
 
       // Upload gambar ke Firebase Storage kalau ada
       if (form.dokumentasi) {
@@ -68,6 +70,17 @@ function PageComponent() {
         await uploadBytes(storageRef, form.dokumentasi);
         imageUrl = await getDownloadURL(storageRef);
       }
+
+      if (form.p2h) {
+        const storageRef = ref(
+          storage,
+          `p2h/${Date.now()}-${form.p2h.name}`,
+        );
+        await uploadBytes(storageRef, form.p2h);
+        p2hUrl = await getDownloadURL(storageRef);
+      }
+
+      // Simpan data ke Firestore
 
       const colRef = collection(
         db,
@@ -84,6 +97,7 @@ function PageComponent() {
         departement: form.departement,
         catatan: form.catatan,
         dokumentasiUrl: imageUrl || null,
+        p2hUrl: p2hUrl || null,
       });
 
       alert("OnCall berhasil disimpan ✅");
@@ -97,6 +111,7 @@ function PageComponent() {
         departement: "",
         catatan: "",
         dokumentasi: null,
+        p2h: null,
       });
     } catch (error) {
       console.error("Error saving worker:", error);
@@ -232,6 +247,20 @@ function PageComponent() {
                 <input
                   type="file"
                   name="dokumentasi"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                />
+              </div>
+
+              {/* P2H (Upload Gambar) */}
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  P2H
+                </label>
+                <input
+                  type="file"
+                  name="p2h"
                   accept="image/*"
                   onChange={handleChange}
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
