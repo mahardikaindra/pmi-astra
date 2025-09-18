@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db, storage } from "../../../../../firebaseConfig";
@@ -267,7 +268,9 @@ function PageComponent() {
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
                 />
                 {form.dokumentasiUrl && (
-                  <img
+                  <Image
+                    height={160}
+                    width={160}
                     src={form.dokumentasiUrl}
                     alt="Preview"
                     className="mt-2 w-40 h-40 object-cover rounded-lg border"
