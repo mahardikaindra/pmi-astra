@@ -110,13 +110,13 @@ function PageComponent() {
               </p>
             </div>
             
-            {data.dokumentasi && (
+            {data.dokumentasiUrl && (
               <div>
                 <p className="text-sm text-gray-500 mb-1">Dokumentasi</p>
                 <Image
                   height={240}
                   width={240}
-                  src={data.dokumentasi}
+                  src={data.dokumentasiUrl}
                   alt="Dokumentasi"
                   className="w-60 h-60 object-cover rounded-lg border"
                 />
