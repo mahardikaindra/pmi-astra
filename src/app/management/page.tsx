@@ -2,7 +2,7 @@
 "use client";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { Users, Upload, Layers, Clock, Route, PanelTop } from "lucide-react";
+import { Users, Download, Layers, Clock, Route, PanelTop } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const menus = [
@@ -13,10 +13,10 @@ const menus = [
     icon: Users,
   },
   {
-    title: "Bulk Upload",
-    description: "Upload Assets & Worker data",
-    href: "/management/bulk-upload",
-    icon: Upload,
+    title: "Download",
+    description: "Download data",
+    href: "/management/download",
+    icon: Download,
   },
   {
     title: "Group",

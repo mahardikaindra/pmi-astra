@@ -4,9 +4,8 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
 import { Eye, EyeOff } from "lucide-react";
-import { db } from "../../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
@@ -28,15 +27,12 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // 🔑 Firebase Auth Login
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password,
       );
-      console.log("UserCredential:", userCredential);
       const user = userCredential.user;
-
       const userDoc = await getDoc(doc(db, "users", user.uid));
 
       if (userDoc.exists()) {
@@ -54,15 +50,28 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      return { success: false, error };
+      setError("Email atau password salah");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-sm bg-white shadow-lg rounded-2xl p-6">
+    <div className="relative min-h-screen flex items-center justify-center">
+      {/* Background Image */}
+      <Image
+        src="/login_bg.png" // ganti dengan nama file background tol kamu
+        alt="Background Jalan Tol"
+        fill
+        priority
+        className="object-cover"
+      />
+
+      {/* Overlay gelap biar form lebih jelas */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Card Login */}
+      <div className="relative w-full max-w-sm bg-white/90 backdrop-blur-md shadow-lg rounded-2xl p-6 z-10">
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image
