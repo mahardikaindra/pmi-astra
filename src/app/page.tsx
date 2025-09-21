@@ -44,7 +44,7 @@ export default function LoginPage() {
         localStorage.setItem("token", (user as any).accessToken);
         localStorage.setItem("user", JSON.stringify(user));
 
-        router.push("/dashboard");
+        router.push(`/dashboard?role=${role}`);
       } else {
         throw new Error("User tidak ditemukan di Firestore");
       }

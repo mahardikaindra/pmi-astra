@@ -8,34 +8,35 @@ import { Home, Settings, Users, User, Box, Headset, Route } from "lucide-react";
 export default function TabBar() {
   const pathname = usePathname();
 
-  // Initialize to false to prevent a flash of the tab bar for logged-out users.
   const [showTabBar, setShowTabBar] = useState(false);
   const [role, setRole] = useState<string | null>(null);
-
+  
+  // Menyatukan logika untuk token dan role dalam satu useEffect.
   useEffect(() => {
-    const storedRole = localStorage.getItem("role");
-    setRole(storedRole);
-  }, []);
-
-  useEffect(() => {
-    // This check runs on the client side after the component mounts
-    // and whenever the user navigates to a new page or the pathname changes.
+    // Ambil token dan role dari localStorage setiap kali pathname berubah
+    // untuk memastikan state selalu up-to-date.
     const token = localStorage.getItem("token");
+    const storedRole = localStorage.getItem("role");
 
-    // Show the tab bar only if a token exists.
     if (token) {
       setShowTabBar(true);
     } else {
       setShowTabBar(false);
     }
-  }, [pathname]);
+    
+    // Gunakan role dari localStorage, yang seharusnya sudah disimpan
+    // saat login atau navigasi pertama.
+    if (storedRole) {
+      setRole(storedRole);
+    }
 
-  const maintainanceRole =
-    role && ["maintainer", "head"].includes(role?.toLowerCase());
-  const adminRole = role && role?.toLowerCase() === "admin";
-  const userRole =
-    role &&
-    ["maintainer", "head", "spv", "lms", "hse"].includes(role?.toLowerCase());
+  }, [pathname]); // Bergantung pada pathname agar memicu render ulang saat navigasi.
+
+  // Perhitungan role yang lebih ringkas.
+  const lowercaseRole = role?.toLowerCase();
+  const maintainanceRole = lowercaseRole && ["maintainance", "head"].includes(lowercaseRole);
+  const adminRole = lowercaseRole === "admin";
+  const userRole = lowercaseRole && ["maintainance", "head", "spv", "lms", "hse"].includes(lowercaseRole);
 
   const tabs = [
     { href: "/dashboard", label: "Home", icon: Home, show: true },

@@ -77,6 +77,27 @@ function PageComponent() {
     }
   };
 
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setForm((prev) => ({
+            ...prev,
+            latitude: pos.coords.latitude.toString(),
+            longitude: pos.coords.longitude.toString(),
+            akurasi: pos.coords.accuracy.toString(),
+          }));
+        },
+        (err) => {
+          alert("Gagal mengambil lokasi: " + err.message);
+        },
+        { enableHighAccuracy: true },
+      );
+    } else {
+      alert("Geolocation tidak didukung browser ini");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -217,7 +238,8 @@ function PageComponent() {
             </div>
 
             {/* Lat Long Akurasi */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Latitude
@@ -255,6 +277,17 @@ function PageComponent() {
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
                 />
+              </div>
+            </div>
+
+              <div className="flex justify-end mt-2">
+                <button
+                  type="button"
+                  onClick={handleGetLocation}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                >
+                  Gunakan Lokasi Saat Ini
+                </button>
               </div>
             </div>
 
