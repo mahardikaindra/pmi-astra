@@ -4,10 +4,12 @@ import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db, storage } from "../../../../../firebaseConfig";
 import {
+  collection,
   doc,
   getDoc,
+  getDocs,
   updateDoc,
-  Timestamp
+  Timestamp,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter, useParams } from "next/navigation";
@@ -15,7 +17,7 @@ import dynamic from "next/dynamic";
 
 function PageComponent() {
   const router = useRouter();
-  const params = useParams(); 
+  const params = useParams(); // ambil id dari URL
   const id = params?.id as string;
 
   const [form, setForm] = useState({
@@ -27,63 +29,60 @@ function PageComponent() {
     catatan: "",
     dokumentasi: null as File | null,
     p2h: null as File | null,
-    p2hUrl: "",
     dokumentasiUrl: "",
+    p2hUrl: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  // Cek token login
-  const getLocalStorageToken = () => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("token");
-    }
-    return null;
-  };
+  // 🔹 Dropdown states
+  const [groups, setGroups] = useState<string[]>([]);
+  const [shifts, setShifts] = useState<string[]>([]);
 
   useEffect(() => {
-    const token = getLocalStorageToken();
-    if (!token) {
-      router.push("/");
-    }
+    const token = localStorage.getItem("token");
+    if (!token) router.push("/");
   }, [router]);
 
-  // Ambil data lama dari Firestore untuk prefill
+  // 🔹 Fetch options
+  useEffect(() => {
+    const fetchOptions = async () => {
+      const groupSnap = await getDocs(
+        collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "group"),
+      );
+      const shiftSnap = await getDocs(
+        collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "shift"),
+      );
+
+      setGroups(groupSnap.docs.map((doc) => doc.data().nama));
+      setShifts(shiftSnap.docs.map((doc) => doc.data().nama));
+    };
+    fetchOptions();
+  }, []);
+
+  // 🔹 Fetch existing OnCall data
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const docRef = doc(
-          db,
-          "artifacts",
-          "Ij8HEOktiALS0zjKB3ay",
-          "oncall",
-          id,
-        );
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          setForm({
-            tanggal: data.tanggal?.toDate().toISOString().split("T")[0] || "",
-            group: data.group || "",
-            location: data.location || "",
-            shift: data.shift || "",
-            departement: data.departement || "",
-            catatan: data.catatan || "",
-            dokumentasi: null,
-            dokumentasiUrl: data.dokumentasiUrl || "",
-            p2h: null,
-            p2hUrl: data.p2hUrl || "",
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching document:", error);
-      } finally {
-        setLoading(false);
+      if (!id) return;
+      const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "oncall", id);
+      const snapshot = await getDoc(docRef);
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setForm({
+          tanggal: data.tanggal?.toDate().toISOString().split("T")[0] || "",
+          group: data.group || "",
+          location: data.location || "",
+          shift: data.shift || "",
+          departement: data.departement || "",
+          catatan: data.catatan || "",
+          dokumentasi: null,
+          p2h: null,
+          dokumentasiUrl: data.dokumentasiUrl || "",
+          p2hUrl: data.p2hUrl || "",
+        });
       }
     };
-
-    if (id) fetchData();
+    fetchData();
   }, [id]);
 
   const handleChange = (
@@ -91,24 +90,19 @@ function PageComponent() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    if (e.target.type === "file") {
-      const target = e.target as HTMLInputElement;
-      if (target.files && target.files[0]) {
-        setForm({ ...form, dokumentasi: target.files[0] });
-      }
-    } else {
-      setForm({ ...form, [e.target.name]: e.target.value });
-    }
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!id) return;
     setSubmitting(true);
+
     try {
       let imageUrl = form.dokumentasiUrl;
       let p2hUrl = form.p2hUrl;
 
-      // Upload file baru kalau ada
+      // Upload dokumentasi baru kalau ada
       if (form.dokumentasi) {
         const storageRef = ref(
           storage,
@@ -118,11 +112,9 @@ function PageComponent() {
         imageUrl = await getDownloadURL(storageRef);
       }
 
+      // Upload P2H baru kalau ada
       if (form.p2h) {
-        const storageRef = ref(
-          storage,
-          `p2h/${Date.now()}-${form.p2h.name}`,
-        );
+        const storageRef = ref(storage, `p2h/${Date.now()}-${form.p2h.name}`);
         await uploadBytes(storageRef, form.p2h);
         p2hUrl = await getDownloadURL(storageRef);
       }
@@ -143,19 +135,17 @@ function PageComponent() {
       alert("OnCall berhasil diperbarui ✅");
       router.push("/oncall");
     } catch (error) {
-      console.error("Error updating worker:", error);
-      alert("Gagal update data ❌");
+      console.error("Error updating OnCall:", error);
+      alert("Gagal memperbarui data ❌");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) return <p className="pt-24 text-center">Loading...</p>;
-
   return (
     <>
       <Header hasBack />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24 mb-12">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit OnCall</h1>
 
@@ -171,12 +161,12 @@ function PageComponent() {
                   name="tanggal"
                   value={form.tanggal}
                   onChange={handleChange}
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-sm border rounded-lg px-3 py-2 text-black"
                   required
                 />
               </div>
 
-              {/* Group Dropdown */}
+              {/* Group */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   Group / Tim
@@ -185,13 +175,15 @@ function PageComponent() {
                   name="group"
                   value={form.group}
                   onChange={handleChange}
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-sm border rounded-lg px-3 py-2 text-black"
                   required
                 >
                   <option value="">-- Pilih Group --</option>
-                  <option value="ON CALL BARAT">ON CALL BARAT</option>
-                  <option value="ON CALL TIMUR">ON CALL TIMUR</option>
-                  <option value="REPAIR REPLACE">REPAIR REPLACE</option>
+                  {groups.map((g, i) => (
+                    <option key={i} value={g}>
+                      {g}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -205,13 +197,12 @@ function PageComponent() {
                   name="location"
                   value={form.location}
                   onChange={handleChange}
-                  placeholder="Contoh: Jakarta"
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-sm border rounded-lg px-3 py-2 text-black"
                   required
                 />
               </div>
 
-              {/* Shift Dropdown */}
+              {/* Shift */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   Shift
@@ -220,26 +211,28 @@ function PageComponent() {
                   name="shift"
                   value={form.shift}
                   onChange={handleChange}
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
+                  className="text-sm border rounded-lg px-3 py-2 text-black"
                   required
                 >
                   <option value="">-- Pilih Shift --</option>
-                  <option value="Satu">Satu</option>
-                  <option value="Dua">Dua</option>
-                  <option value="Tiga">Tiga</option>
+                  {shifts.map((s, i) => (
+                    <option key={i} value={s}>
+                      {s}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* Departement Radio */}
+              {/* Departement */}
               <div className="flex flex-col md:col-span-2">
                 <label className="text-sm font-medium text-gray-600 mb-2">
                   Departement
                 </label>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex gap-4">
                   {["MAINTENANCE", "EHS", "GA"].map((dept) => (
                     <label
                       key={dept}
-                      className="flex items-center space-x-2 cursor-pointer"
+                      className="flex items-center space-x-2 text-black"
                     >
                       <input
                         type="radio"
@@ -247,10 +240,9 @@ function PageComponent() {
                         value={dept}
                         checked={form.departement === dept}
                         onChange={handleChange}
-                        className="w-4 h-4 text-blue-600 border-gray-300"
-                        required
+                        className="w-4 h-4 text-black"
                       />
-                      <span className="text-sm text-gray-700">{dept}</span>
+                      <span>{dept}</span>
                     </label>
                   ))}
                 </div>
@@ -265,8 +257,7 @@ function PageComponent() {
                   name="catatan"
                   value={form.catatan}
                   onChange={handleChange}
-                  placeholder="Tulis catatan tambahan..."
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 h-24"
+                  className="text-sm border rounded-lg px-3 py-2 text-black h-24"
                 />
               </div>
 
@@ -275,57 +266,53 @@ function PageComponent() {
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   Dokumentasi
                 </label>
+                {form.dokumentasiUrl && (
+                  <Image
+                    height={200}
+                    width={200}
+                    src={form.dokumentasiUrl}
+                    alt="Dokumentasi"
+                    className="w-32 h-32 object-cover mb-2"
+                  />
+                )}
                 <input
                   type="file"
                   name="dokumentasi"
                   accept="image/*"
                   onChange={handleChange}
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
                 />
-                {form.dokumentasiUrl && (
-                  <Image
-                    height={160}
-                    width={160}
-                    src={form.dokumentasiUrl}
-                    alt="Preview"
-                    className="mt-2 w-40 h-40 object-cover rounded-lg border"
-                  />
-                )}
               </div>
 
-              {/* P2H (Tampilkan jika ada) */}
-              {form.p2hUrl && (
-                <div className="flex flex-col md:col-span-2">
+              {/* P2H */}
+              <div className="flex flex-col md:col-span-2">
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   P2H
                 </label>
+                {form.p2hUrl && (
+                  <Image
+                    height={200}
+                    width={200}
+                    src={form.p2hUrl}
+                    alt="P2H"
+                    className="w-32 h-32 object-cover mb-2"
+                  />
+                )}
                 <input
                   type="file"
                   name="p2h"
                   accept="image/*"
                   onChange={handleChange}
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2"
                 />
-                {form.p2hUrl && (
-                  <Image
-                    height={160}
-                    width={160}
-                    src={form.p2hUrl}
-                    alt="Preview"
-                    className="mt-2 w-40 h-40 object-cover rounded-lg border"
-                  />
-                )}
               </div>
-              )}
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={submitting}
               className={`w-full py-3 rounded-lg font-semibold transition ${
                 submitting
-                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  ? "bg-gray-400 cursor-not-allowed"
                   : "bg-[#002D62] text-white hover:bg-blue-700"
               }`}
             >

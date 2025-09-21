@@ -1,16 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { db, storage } from "../../../../../firebaseConfig";
-import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter, useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 
-function EditRoutinePage() {
+function PageComponent() {
   const router = useRouter();
-  const params = useParams(); // ambil :id dari route
+  const params = useParams(); // ambil id dari route
   const { id } = params as { id: string };
 
   const [form, setForm] = useState({
@@ -24,13 +31,22 @@ function EditRoutinePage() {
     akurasi: "",
     deskripsi: "",
     catatan: "",
-    dokumentasi: "" as string | File,
+    dokumentasi: null as File | null,
   });
-
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // 🔹 State untuk dropdown jalur & lajur
+  const [jalurs, setJalurs] = useState<string[]>([]);
+  const [lajurs, setLajurs] = useState<string[]>([]);
+  const [dokumentasi, setDokumentasi] = useState<File | null>(null);
+  const [dokumentasiUrl, setDokumentasiUrl] = useState<string>("");
 
-  // ambil data awal
+  // Cek token login
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) router.push("/");
+  }, [router]);
+
+  // Ambil data dari Firestore
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,22 +57,53 @@ function EditRoutinePage() {
           "routine",
           id,
         );
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          setForm(snap.data() as any);
+        const snapshot = await getDoc(docRef);
+        if (snapshot.exists()) {
+          setForm(snapshot.data() as any);
+          if (snapshot.data()) {
+            setDokumentasiUrl(snapshot.data().dokumentasi); // URL dari firestore
+          }
         } else {
           alert("Data tidak ditemukan ❌");
-          router.push("/maintenance");
+          router.push("/routine");
         }
       } catch (err) {
-        console.error("Error fetching:", err);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching data:", err);
       }
     };
-    fetchData();
+    if (id) fetchData();
   }, [id, router]);
 
+  // 🔹 Ambil data Jalur & Lajur dari Firestore
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const jalurSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "jalur"),
+        );
+        const lajurSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "lajur"),
+        );
+
+        setJalurs(jalurSnap.docs.map((doc) => doc.data().nama));
+        setLajurs(lajurSnap.docs.map((doc) => doc.data().nama));
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+
+    fetchOptions();
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setDokumentasi(file);
+      setDokumentasiUrl(URL.createObjectURL(file)); // preview lokal
+    }
+  };
+
+  // Handle input change
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -65,26 +112,20 @@ function EditRoutinePage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setForm({ ...form, dokumentasi: e.target.files[0] });
-    }
-  };
-
+  // Submit update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
-      let fileUrl =
-        typeof form.dokumentasi === "string" ? form.dokumentasi : "";
+      let fileUrl = dokumentasiUrl;
 
-      if (form.dokumentasi instanceof File) {
+      if (dokumentasi) {
         const fileRef = ref(
           storage,
-          `routine/${Date.now()}-${form.dokumentasi.name}`,
+          `routine/${Date.now()}-${dokumentasi.name}`,
         );
-        await uploadBytes(fileRef, form.dokumentasi);
+        await uploadBytes(fileRef, dokumentasi);
         fileUrl = await getDownloadURL(fileRef);
       }
 
@@ -98,7 +139,6 @@ function EditRoutinePage() {
       await updateDoc(docRef, {
         ...form,
         dokumentasi: fileUrl,
-        updatedAt: Timestamp.now(),
       });
 
       alert("Routine berhasil diperbarui ✅");
@@ -111,18 +151,10 @@ function EditRoutinePage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <>
       <Header hasBack />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24 mb-12">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">
             Edit Routine
@@ -140,6 +172,7 @@ function EditRoutinePage() {
                 value={form.jalan_tol}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                required
               />
             </div>
 
@@ -176,8 +209,10 @@ function EditRoutinePage() {
                   value={form.lokasi}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                  required
                 />
               </div>
+              {/* Jalur dari Firestore */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Jalur
@@ -187,12 +222,17 @@ function EditRoutinePage() {
                   value={form.jalur}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                  required
                 >
                   <option value="">-- Pilih Jalur --</option>
-                  <option value="Jalur A">Jalur A</option>
-                  <option value="Jalur B">Jalur B</option>
+                  {jalurs.map((j, i) => (
+                    <option key={i} value={j}>
+                      {j}
+                    </option>
+                  ))}
                 </select>
               </div>
+              {/* Lajur dari Firestore */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Lajur
@@ -202,17 +242,19 @@ function EditRoutinePage() {
                   value={form.lajur}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                  required
                 >
                   <option value="">-- Pilih Lajur --</option>
-                  <option value="Bahu Luar">Bahu Luar</option>
-                  <option value="Lajur 1">Lajur 1</option>
-                  <option value="Lajur 2">Lajur 2</option>
-                  <option value="Lajur 3">Lajur 3</option>
+                  {lajurs.map((l, i) => (
+                    <option key={i} value={l}>
+                      {l}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
-            {/* Lat Long Akurasi */}
+            {/* Latitude, Longitude, Akurasi */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -266,7 +308,7 @@ function EditRoutinePage() {
               ></textarea>
             </div>
 
-{/* Catatan */}
+            {/* Catatan */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Catatan
@@ -279,27 +321,35 @@ function EditRoutinePage() {
                 rows={3}
               ></textarea>
             </div>
+
             {/* Dokumentasi */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-600 mb-1">
                 Dokumentasi
               </label>
+
+              {dokumentasiUrl && (
+                <Image
+                  src={dokumentasiUrl}
+                  alt="Dokumentasi"
+                  width={200}
+                  height={200}
+                  className="w-32 h-32 object-cover rounded mb-2"
+                />
+              )}
+
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
               />
-              {typeof form.dokumentasi === "string" &&
-                form.dokumentasi !== "" && (
-                  <div className="mt-2">
-                    <Image
-                      src={form.dokumentasi}
-                      alt="Dokumentasi"
-                      className="w-32 h-32 object-cover rounded-lg border"
-                    />
-                  </div>
-                )}
+
+              {dokumentasi && (
+                <p className="text-sm text-gray-500 mt-1">
+                  File dipilih: {dokumentasi.name}
+                </p>
+              )}
             </div>
 
             {/* Submit */}
@@ -320,5 +370,9 @@ function EditRoutinePage() {
     </>
   );
 }
+
+const EditRoutinePage = dynamic(() => Promise.resolve(PageComponent), {
+  ssr: false,
+});
 
 export default EditRoutinePage;

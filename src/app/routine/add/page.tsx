@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { db, storage } from "../../../../firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -24,6 +24,10 @@ function PageComponent() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // 🔹 State untuk dropdown jalur & lajur
+  const [jalurs, setJalurs] = useState<string[]>([]);
+  const [lajurs, setLajurs] = useState<string[]>([]);
+
   const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("token");
@@ -37,6 +41,27 @@ function PageComponent() {
       router.push("/");
     }
   }, [router]);
+
+  // 🔹 Ambil data Jalur & Lajur dari Firestore
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const jalurSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "jalur"),
+        );
+        const lajurSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "lajur"),
+        );
+
+        setJalurs(jalurSnap.docs.map((doc) => doc.data().nama));
+        setLajurs(lajurSnap.docs.map((doc) => doc.data().nama));
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -91,7 +116,7 @@ function PageComponent() {
   return (
     <>
       <Header hasBack />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24 mb-12">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Routine</h1>
 
@@ -147,6 +172,8 @@ function PageComponent() {
                   required
                 />
               </div>
+
+              {/* Jalur dari Firestore */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Jalur
@@ -159,10 +186,15 @@ function PageComponent() {
                   required
                 >
                   <option value="">-- Pilih Jalur --</option>
-                  <option value="Jalur A">Jalur A</option>
-                  <option value="Jalur B">Jalur B</option>
+                  {jalurs.map((j, i) => (
+                    <option key={i} value={j}>
+                      {j}
+                    </option>
+                  ))}
                 </select>
               </div>
+
+              {/* Lajur dari Firestore */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
                   Lajur
@@ -175,10 +207,11 @@ function PageComponent() {
                   required
                 >
                   <option value="">-- Pilih Lajur --</option>
-                  <option value="Bahu Luar">Bahu Luar</option>
-                  <option value="Lajur 1">Lajur 1</option>
-                  <option value="Lajur 2">Lajur 2</option>
-                  <option value="Lajur 3">Lajur 3</option>
+                  {lajurs.map((l, i) => (
+                    <option key={i} value={l}>
+                      {l}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -240,13 +273,13 @@ function PageComponent() {
               ></textarea>
             </div>
 
-            {/* Deskripsi */}
+            {/* Catatan */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Catatan
               </label>
               <textarea
-                name="deskripsi"
+                name="catatan"
                 value={form.catatan}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"

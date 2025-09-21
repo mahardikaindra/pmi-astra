@@ -2,11 +2,7 @@
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db, storage } from "../../../../firebaseConfig";
-import {
-  collection,
-  addDoc,
-  Timestamp
-} from "firebase/firestore";
+import { collection, addDoc, Timestamp, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -25,6 +21,10 @@ function PageComponent() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // 🔹 State untuk dropdown
+  const [groups, setGroups] = useState<string[]>([]);
+  const [shifts, setShifts] = useState<string[]>([]);
+
   const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("token");
@@ -38,6 +38,26 @@ function PageComponent() {
       router.push("/");
     }
   }, [router]);
+
+  // 🔹 Ambil data group & shift dari Firestore
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const groupSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "group"),
+        );
+        const shiftSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "shift"),
+        );
+
+        setGroups(groupSnap.docs.map((doc) => doc.data().nama));
+        setShifts(shiftSnap.docs.map((doc) => doc.data().nama));
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+    fetchOptions();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -61,7 +81,7 @@ function PageComponent() {
       let imageUrl = "";
       let p2hUrl = "";
 
-      // Upload gambar ke Firebase Storage kalau ada
+      // Upload dokumentasi
       if (form.dokumentasi) {
         const storageRef = ref(
           storage,
@@ -71,17 +91,14 @@ function PageComponent() {
         imageUrl = await getDownloadURL(storageRef);
       }
 
+      // Upload P2H
       if (form.p2h) {
-        const storageRef = ref(
-          storage,
-          `p2h/${Date.now()}-${form.p2h.name}`,
-        );
+        const storageRef = ref(storage, `p2h/${Date.now()}-${form.p2h.name}`);
         await uploadBytes(storageRef, form.p2h);
         p2hUrl = await getDownloadURL(storageRef);
       }
 
       // Simpan data ke Firestore
-
       const colRef = collection(
         db,
         "artifacts",
@@ -124,7 +141,7 @@ function PageComponent() {
   return (
     <>
       <Header hasBack />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pt-24 mb-12">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Add OnCall</h1>
 
@@ -145,7 +162,7 @@ function PageComponent() {
                 />
               </div>
 
-              {/* Group Dropdown */}
+              {/* Group Dropdown dari Firestore */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   Group / Tim
@@ -158,9 +175,11 @@ function PageComponent() {
                   required
                 >
                   <option value="">-- Pilih Group --</option>
-                  <option value="ON CALL BARAT">ON CALL BARAT</option>
-                  <option value="ON CALL TIMUR">ON CALL TIMUR</option>
-                  <option value="REPAIR REPLACE">REPAIR REPLACE</option>
+                  {groups.map((g, i) => (
+                    <option key={i} value={g}>
+                      {g}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -180,7 +199,7 @@ function PageComponent() {
                 />
               </div>
 
-              {/* Shift Dropdown */}
+              {/* Shift Dropdown dari Firestore */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   Shift
@@ -193,9 +212,11 @@ function PageComponent() {
                   required
                 >
                   <option value="">-- Pilih Shift --</option>
-                  <option value="Satu">Satu</option>
-                  <option value="Dua">Dua</option>
-                  <option value="Tiga">Tiga</option>
+                  {shifts.map((s, i) => (
+                    <option key={i} value={s}>
+                      {s}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -239,7 +260,7 @@ function PageComponent() {
                 />
               </div>
 
-              {/* Dokumentasi (Upload Gambar) */}
+              {/* Dokumentasi */}
               <div className="flex flex-col md:col-span-2">
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   Dokumentasi
@@ -253,7 +274,7 @@ function PageComponent() {
                 />
               </div>
 
-              {/* P2H (Upload Gambar) */}
+              {/* P2H */}
               <div className="flex flex-col md:col-span-2">
                 <label className="text-sm font-medium text-gray-600 mb-1">
                   P2H
@@ -268,7 +289,7 @@ function PageComponent() {
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={submitting}

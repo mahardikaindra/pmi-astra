@@ -30,13 +30,21 @@ export default function TabBar() {
     }
   }, [pathname]);
 
-  const maintainanceRole = role && ["maintainer", "head"].includes(role?.toLowerCase());
-  // const adminRole = role && role?.toLowerCase() === "admin";
-  const userRole = role && ["maintainer", "head", "spv", "lms", "hse"].includes(role?.toLowerCase());
+  const maintainanceRole =
+    role && ["maintainer", "head"].includes(role?.toLowerCase());
+  const adminRole = role && role?.toLowerCase() === "admin";
+  const userRole =
+    role &&
+    ["maintainer", "head", "spv", "lms", "hse"].includes(role?.toLowerCase());
 
   const tabs = [
     { href: "/dashboard", label: "Home", icon: Home, show: true },
-    // { href: "/management", label: "Management", icon: Settings, show: adminRole },
+    {
+      href: "/management",
+      label: "Management",
+      icon: Settings,
+      show: adminRole,
+    },
     {
       href: "/oncall",
       label: "On Call",
