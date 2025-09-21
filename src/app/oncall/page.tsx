@@ -110,7 +110,7 @@ export default function OnCallPage() {
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
-  const canReadDelete = role === "Maintainer" || role === "Head";
+  const canReadDelete = role === "Maintainance" || role === "Head";
 
   return (
     <>
