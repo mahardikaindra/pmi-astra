@@ -240,45 +240,45 @@ function PageComponent() {
             {/* Lat Long Akurasi */}
             <div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Latitude
-                </label>
-                <input
-                  type="text"
-                  name="latitude"
-                  value={form.latitude}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                  required
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Latitude
+                  </label>
+                  <input
+                    type="text"
+                    name="latitude"
+                    value={form.latitude}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Longitude
+                  </label>
+                  <input
+                    type="text"
+                    name="longitude"
+                    value={form.longitude}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Akurasi
+                  </label>
+                  <input
+                    type="text"
+                    name="akurasi"
+                    value={form.akurasi}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Longitude
-                </label>
-                <input
-                  type="text"
-                  name="longitude"
-                  value={form.longitude}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Akurasi
-                </label>
-                <input
-                  type="text"
-                  name="akurasi"
-                  value={form.akurasi}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                />
-              </div>
-            </div>
 
               <div className="flex justify-end mt-2">
                 <button

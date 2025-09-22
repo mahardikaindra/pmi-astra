@@ -2,8 +2,17 @@
 "use client";
 import Link from "next/link";
 import Header from "@/components/Header";
-import { Users, Download, Layers, Clock, Route, PanelTop } from "lucide-react";
+import {
+  Users,
+  Download,
+  Layers,
+  Clock,
+  Route,
+  PanelTop,
+  Map,
+} from "lucide-react";
 import dynamic from "next/dynamic";
+import { title } from "process";
 
 const menus = [
   {
@@ -29,6 +38,12 @@ const menus = [
     description: "Shift management",
     href: "/management/shift",
     icon: Clock,
+  },
+  {
+    title: "Location",
+    description: "Location management",
+    href: "/management/location",
+    icon: Map,
   },
   {
     title: "Jalur",

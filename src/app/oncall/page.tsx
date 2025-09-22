@@ -110,7 +110,8 @@ export default function OnCallPage() {
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
-  const canReadDelete = role && ["admin", "maintenance", "ais"].includes(role.toLowerCase());
+  const canReadDelete =
+    role && ["admin", "maintenance", "ais"].includes(role.toLowerCase());
 
   return (
     <>

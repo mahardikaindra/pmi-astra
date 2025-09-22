@@ -10,7 +10,7 @@ export default function TabBar() {
 
   const [showTabBar, setShowTabBar] = useState(false);
   const [role, setRole] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const storedRole = localStorage.getItem("role");
@@ -23,12 +23,12 @@ export default function TabBar() {
     if (storedRole) {
       setRole(storedRole);
     }
-
   }, [pathname]);
 
   const lowercaseRole = role?.toLowerCase();
   const adminRole = lowercaseRole === "admin";
-  const userRole = lowercaseRole && ["maintenance", "ais", "lms"].includes(lowercaseRole);
+  const userRole =
+    lowercaseRole && ["maintenance", "ais", "lms"].includes(lowercaseRole);
 
   const tabs = [
     { href: "/dashboard", label: "Home", icon: Home, show: true },
