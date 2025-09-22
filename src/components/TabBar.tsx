@@ -11,10 +11,7 @@ export default function TabBar() {
   const [showTabBar, setShowTabBar] = useState(false);
   const [role, setRole] = useState<string | null>(null);
   
-  // Menyatukan logika untuk token dan role dalam satu useEffect.
   useEffect(() => {
-    // Ambil token dan role dari localStorage setiap kali pathname berubah
-    // untuk memastikan state selalu up-to-date.
     const token = localStorage.getItem("token");
     const storedRole = localStorage.getItem("role");
 
@@ -23,20 +20,15 @@ export default function TabBar() {
     } else {
       setShowTabBar(false);
     }
-    
-    // Gunakan role dari localStorage, yang seharusnya sudah disimpan
-    // saat login atau navigasi pertama.
     if (storedRole) {
       setRole(storedRole);
     }
 
-  }, [pathname]); // Bergantung pada pathname agar memicu render ulang saat navigasi.
+  }, [pathname]);
 
-  // Perhitungan role yang lebih ringkas.
   const lowercaseRole = role?.toLowerCase();
-  const maintainanceRole = lowercaseRole && ["maintainance", "head"].includes(lowercaseRole);
   const adminRole = lowercaseRole === "admin";
-  const userRole = lowercaseRole && ["maintainance", "head", "spv", "lms", "hse"].includes(lowercaseRole);
+  const userRole = lowercaseRole && ["maintenance", "ais", "lms"].includes(lowercaseRole);
 
   const tabs = [
     { href: "/dashboard", label: "Home", icon: Home, show: true },
@@ -50,13 +42,13 @@ export default function TabBar() {
       href: "/oncall",
       label: "On Call",
       icon: Headset,
-      show: maintainanceRole,
+      show: userRole,
     },
     {
       href: "/routine",
       label: "Routine",
       icon: Route,
-      show: maintainanceRole,
+      show: userRole,
     },
     { href: "/worker", label: "Workers", icon: Users, show: userRole },
     { href: "/assets", label: "Assets", icon: Box, show: userRole },

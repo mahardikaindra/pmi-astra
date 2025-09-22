@@ -15,6 +15,7 @@ function PageComponent() {
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState<string | null>(null);
 
   const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
@@ -58,11 +59,19 @@ function PageComponent() {
     if (id) fetchData();
   }, [id]);
 
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) {
+      setRole(storedRole);
+    }
+  }, []);
+
   if (loading) return <p className="pt-24 text-center">Loading...</p>;
 
   if (!data)
     return <p className="pt-24 text-center">Data tidak ditemukan ❌</p>;
 
+  const canEdit = role && ["admin", "maintenance", "ais"].includes(role.toLowerCase());
   return (
     <>
       <Header hasBack />
@@ -139,14 +148,14 @@ function PageComponent() {
             )}
           </div>
 
-          <div className="mt-8 flex justify-end">
+          {canEdit && (<div className="mt-8 flex justify-end">
             <button
               onClick={() => router.push(`/oncall/${id}/edit`)}
               className="px-4 py-2 rounded-lg bg-[#002D62] text-white hover:bg-blue-700"
             >
               Edit Data
             </button>
-          </div>
+          </div>)}
         </div>
       </div>
     </>

@@ -138,7 +138,7 @@ export default function AssetsPage() {
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
-  const canReadDelete = role === "SPV" || role === "Head";
+  const canReadDelete = role && ["admin", "maintenance", "ais"].includes(role.toLowerCase());
 
   return (
     <>
