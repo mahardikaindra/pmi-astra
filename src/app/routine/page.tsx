@@ -9,6 +9,7 @@ import {
   doc,
   deleteDoc,
   getDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { Pencil, Trash2 } from "lucide-react";
@@ -19,8 +20,10 @@ import CustomPopup from "@/components/CustomPopUp";
 
 interface Routine {
   id?: string;
+  personel: string;
   indikator: string;
-  jalan_tol: string;
+  location: string;
+  date: Timestamp;
 }
 
 export default function RoutinePage() {
@@ -162,7 +165,22 @@ export default function RoutinePage() {
                   <h2 className="text-lg font-semibold text-gray-800">
                     {routine.indikator}
                   </h2>
-                  <p className="text-xs text-gray-500">{routine.jalan_tol}</p>
+                  <p className="text-xm text-gray-500">{routine.location}</p>
+                  <p className="text-xs text-gray-500">
+                    {routine.date &&
+                      (() => {
+                        const dateObj = routine.date.toDate();
+                        const options: Intl.DateTimeFormatOptions = {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        };
+                        return `${dateObj.toLocaleDateString("id-ID", options)} WIB`;
+                      })()}
+                  </p>
                 </div>
 
                 {/* Aksi */}

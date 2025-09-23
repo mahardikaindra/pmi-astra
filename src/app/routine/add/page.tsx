@@ -2,31 +2,70 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { db, storage } from "../../../../firebaseConfig";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
+interface Location {
+  location_name: string;
+  latitude: string;
+  longitude: string;
+  akurasi: string;
+  status: string;
+  address: string;
+}
+interface Users {
+  id?: string;
+  name: string;
+  age: number;
+  area: string;
+  contractor: string;
+  point_reward: number;
+  position: string;
+  punishment: string;
+  photo?: string;
+  sik?: string;
+  rating?: number;
+  information?: string;
+  licenses?: string[];
+}
+
+interface Assets {
+  assets: string;
+  facility: string;
+  merk: string;
+  condition: string;
+  technical_data: string;
+  initial_date: string;
+  last_maintenance: string;
+  last_replace_part: string;
+  address: string;
+  latitude: string;
+  longitude: string;
+  image?: string;
+}
+
 function PageComponent() {
   const router = useRouter();
   const [form, setForm] = useState({
-    jalan_tol: "",
+    date: new Date().toISOString().split("T")[0],
+    location: "",
     indikator: "",
-    lokasi: "",
-    jalur: "",
-    lajur: "",
     latitude: "",
     longitude: "",
     akurasi: "",
     deskripsi: "",
-    catatan: "",
+    personil: "",
+    result: "",
     dokumentasi: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
 
   // 🔹 State untuk dropdown jalur & lajur
-  const [jalurs, setJalurs] = useState<string[]>([]);
-  const [lajurs, setLajurs] = useState<string[]>([]);
+  const [assets, setAssets] = useState<Assets[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [users, setUsers] = useState<Users[]>([]);
 
   const getLocalStorageToken = () => {
     if (typeof window !== "undefined") {
@@ -42,19 +81,43 @@ function PageComponent() {
     }
   }, [router]);
 
-  // 🔹 Ambil data Jalur & Lajur dari Firestore
+  // 🔹 Ambil data Location & User dari Firestore
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const jalurSnap = await getDocs(
-          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "jalur"),
-        );
-        const lajurSnap = await getDocs(
-          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "lajur"),
+        const usersCol = collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/users");
+        const usersSnap = await getDocs(usersCol);
+        const workerData: Users[] = usersSnap.docs.map((docSnap) => {
+          const data = docSnap.data() as Users;
+          return { id: docSnap.id, ...data };
+        });
+        setUsers(
+          workerData.filter(
+            (user) => user?.area && user?.area.toLowerCase() === "rutin",
+          ),
         );
 
-        setJalurs(jalurSnap.docs.map((doc) => doc.data().nama));
-        setLajurs(lajurSnap.docs.map((doc) => doc.data().nama));
+        const locationsCol = collection(
+          db,
+          "artifacts/Ij8HEOktiALS0zjKB3ay/locations",
+        );
+        const locationSnap = await getDocs(usersCol);
+        const locationData: Location[] = locationSnap.docs.map((docSnap) => {
+          const dataLoc = docSnap.data() as Location;
+          return { id: docSnap.id, ...dataLoc };
+        });
+        setLocations(locationData);
+
+        const assetsCol = collection(
+          db,
+          "artifacts/Ij8HEOktiALS0zjKB3ay/assets",
+        );
+        const assetsSnap = await getDocs(assetsCol);
+        const assetsData: Assets[] = assetsSnap.docs.map((docSnap) => {
+          const dataAssets = docSnap.data() as Assets;
+          return { id: docSnap.id, ...dataAssets };
+        });
+        setAssets(assetsData);
       } catch (error) {
         console.error("Error fetching dropdown data:", error);
       }
@@ -134,6 +197,8 @@ function PageComponent() {
     }
   };
 
+  console.log("Form State:", locations);
+
   return (
     <>
       <Header hasBack />
@@ -142,99 +207,72 @@ function PageComponent() {
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Routine</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Jalan Tol */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
-                Jalan Tol
+                Tanggal & Waktu
               </label>
               <input
-                type="text"
-                name="jalan_tol"
-                value={form.jalan_tol}
+                type="datetime-local"
+                name="date"
+                value={form.date}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
                 required
               />
             </div>
 
-            {/* Indikator */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
-                Indikator
+                Personil
               </label>
               <select
-                name="indikator"
-                value={form.indikator}
+                name="personil"
+                value={form.personil}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
                 required
               >
-                <option value="">-- Pilih Indikator --</option>
-                <option value="Perkerasan Jalan Utama [ Lubang ]">
-                  Perkerasan Jalan Utama [ Lubang ]
-                </option>
-                <option value="Rambu Rusak">Rambu Rusak</option>
-                <option value="Pagar Pengaman">Pagar Pengaman</option>
+                <option value="">-- Pilih Personil --</option>
+                {users.map((j: any, i: number) => (
+                  <option key={i} value={j.name}>
+                    {j.name}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* Lokasi, Jalur, Lajur */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Lokasi (km)
-                </label>
-                <input
-                  type="text"
-                  name="lokasi"
-                  value={form.lokasi}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                  required
-                />
-              </div>
-
-              {/* Jalur dari Firestore */}
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Jalur
-                </label>
-                <select
-                  name="jalur"
-                  value={form.jalur}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                  required
-                >
-                  <option value="">-- Pilih Jalur --</option>
-                  {jalurs.map((j, i) => (
-                    <option key={i} value={j}>
-                      {j}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Lajur dari Firestore */}
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Lajur
-                </label>
-                <select
-                  name="lajur"
-                  value={form.lajur}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                  required
-                >
-                  <option value="">-- Pilih Lajur --</option>
-                  {lajurs.map((l, i) => (
-                    <option key={i} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Lokasi */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Lokasi
+              </label>
+              <select
+                name="location"
+                value={form.location}
+                onChange={(e) => {
+                  handleChange(e);
+                  const selectedLoc = locations.find(
+                    (loc) => loc.location_name === e.target.value,
+                  );
+                  if (selectedLoc) {
+                    setForm((prev) => ({
+                      ...prev,
+                      latitude: selectedLoc.latitude,
+                      longitude: selectedLoc.longitude,
+                      akurasi: selectedLoc.akurasi,
+                    }));
+                  }
+                }}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                required
+              >
+                <option value="">-- Pilih Lokasi --</option>
+                {locations.map((j, i) => (
+                  <option key={i} value={j.location_name}>
+                    {j.location_name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Lat Long Akurasi */}
@@ -248,9 +286,8 @@ function PageComponent() {
                     type="text"
                     name="latitude"
                     value={form.latitude}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                    required
+                    readOnly
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500 bg-gray-100 cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -261,9 +298,8 @@ function PageComponent() {
                     type="text"
                     name="longitude"
                     value={form.longitude}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                    required
+                    readOnly
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500 bg-gray-100 cursor-not-allowed"
                   />
                 </div>
                 <div>
@@ -274,8 +310,8 @@ function PageComponent() {
                     type="text"
                     name="akurasi"
                     value={form.akurasi}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                    readOnly
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500 bg-gray-100 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -289,6 +325,26 @@ function PageComponent() {
                   Gunakan Lokasi Saat Ini
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Jenis Assets
+              </label>
+              <select
+                name="indikator"
+                value={form.indikator}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                required
+              >
+                <option value="">-- Pilih Assets --</option>
+                {assets.map((asset, i) => (
+                  <option key={i} value={asset.assets}>
+                    {asset.assets}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Deskripsi */}
@@ -306,14 +362,14 @@ function PageComponent() {
               ></textarea>
             </div>
 
-            {/* Catatan */}
+            {/* Hasil Routine */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
-                Catatan
+                Hasil Routine
               </label>
               <textarea
-                name="catatan"
-                value={form.catatan}
+                name="result"
+                value={form.result}
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
                 rows={3}
@@ -321,10 +377,10 @@ function PageComponent() {
               ></textarea>
             </div>
 
-            {/* Dokumentasi */}
+            {/* Photo */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
-                Dokumentasi
+                Photo
               </label>
               <input
                 type="file"
