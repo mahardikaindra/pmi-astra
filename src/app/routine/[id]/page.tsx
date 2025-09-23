@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { db } from "../../../../firebaseConfig";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { useRouter, useParams } from "next/navigation";
 
 function ViewRoutinePage() {
