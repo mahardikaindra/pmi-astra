@@ -237,8 +237,6 @@ function PageComponent() {
     }
   };
 
-  console.log("Form data:", locations);
-
   return (
     <>
       <Header hasBack />

@@ -197,8 +197,6 @@ function PageComponent() {
     }
   };
 
-  console.log("Form State:", locations);
-
   return (
     <>
       <Header hasBack />
