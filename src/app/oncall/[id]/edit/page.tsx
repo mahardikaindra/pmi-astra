@@ -21,12 +21,14 @@ function PageComponent() {
   const id = params?.id as string;
 
   const [form, setForm] = useState({
-    tanggal: "",
+    date: "",
     group: "",
     location: "",
     shift: "",
     departement: "",
     catatan: "",
+    description: "",
+    jenis_assets: "",
     dokumentasi: null as File | null,
     p2h: null as File | null,
     dokumentasiUrl: "",
@@ -36,6 +38,7 @@ function PageComponent() {
   const [submitting, setSubmitting] = useState(false);
 
   // 🔹 Dropdown states
+  const [locations, setLocations] = useState<string[]>([]);
   const [groups, setGroups] = useState<string[]>([]);
   const [shifts, setShifts] = useState<string[]>([]);
 
@@ -53,7 +56,10 @@ function PageComponent() {
       const shiftSnap = await getDocs(
         collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "shift"),
       );
-
+      const locationSnap = await getDocs(
+        collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "locations"),
+      );
+      setLocations(locationSnap.docs.map((doc) => doc.data().location_name));
       setGroups(groupSnap.docs.map((doc) => doc.data().nama));
       setShifts(shiftSnap.docs.map((doc) => doc.data().nama));
     };
@@ -69,10 +75,12 @@ function PageComponent() {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setForm({
-          tanggal: data.tanggal?.toDate().toISOString().split("T")[0] || "",
+          date: data.date?.toDate().toISOString().split("T")[0] || "",
           group: data.group || "",
           location: data.location || "",
           shift: data.shift || "",
+          description: data.description || "",
+          jenis_assets: data.jenis_assets || "",
           departement: data.departement || "",
           catatan: data.catatan || "",
           dokumentasi: null,
@@ -122,7 +130,7 @@ function PageComponent() {
       const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "oncall", id);
 
       await updateDoc(docRef, {
-        tanggal: Timestamp.fromDate(new Date(form.tanggal)),
+        date: Timestamp.fromDate(new Date(form.date)),
         group: form.group,
         location: form.location,
         shift: form.shift,
@@ -157,11 +165,11 @@ function PageComponent() {
                   Tanggal
                 </label>
                 <input
-                  type="date"
-                  name="tanggal"
-                  value={form.tanggal}
+                  type="datetime-local"
+                  name="date"
+                  value={form.date}
                   onChange={handleChange}
-                  className="text-sm border rounded-lg px-3 py-2 text-black"
+                  className="text-sm border rounded-lg px-3 py-2 border-gray-300 text-gray-500"
                   required
                 />
               </div>
@@ -175,7 +183,7 @@ function PageComponent() {
                   name="group"
                   value={form.group}
                   onChange={handleChange}
-                  className="text-sm border rounded-lg px-3 py-2 text-black"
+                  className="text-sm border rounded-lg px-3 py-2 border-gray-300 text-gray-500"
                   required
                 >
                   <option value="">-- Pilih Group --</option>
@@ -188,18 +196,24 @@ function PageComponent() {
               </div>
 
               {/* Lokasi */}
-              <div className="flex flex-col">
-                <label className="text-sm font-medium text-gray-600 mb-1">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
                   Lokasi
                 </label>
-                <input
-                  type="text"
+                <select
                   name="location"
                   value={form.location}
                   onChange={handleChange}
-                  className="text-sm border rounded-lg px-3 py-2 text-black"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
                   required
-                />
+                >
+                  <option value="">-- Pilih Lokasi --</option>
+                  {locations.map((j, i) => (
+                    <option key={i} value={j}>
+                      {j}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Shift */}
@@ -211,7 +225,7 @@ function PageComponent() {
                   name="shift"
                   value={form.shift}
                   onChange={handleChange}
-                  className="text-sm border rounded-lg px-3 py-2 text-black"
+                  className="text-sm border rounded-lg px-3 py-2 border-gray-300 text-gray-500"
                   required
                 >
                   <option value="">-- Pilih Shift --</option>
@@ -232,7 +246,7 @@ function PageComponent() {
                   {["MAINTENANCE", "EHS", "GA"].map((dept) => (
                     <label
                       key={dept}
-                      className="flex items-center space-x-2 text-black"
+                      className="flex items-center space-x-2 border-gray-300 text-gray-500"
                     >
                       <input
                         type="radio"
@@ -240,12 +254,55 @@ function PageComponent() {
                         value={dept}
                         checked={form.departement === dept}
                         onChange={handleChange}
-                        className="w-4 h-4 text-black"
+                        className="w-4 h-4 border-gray-300 text-gray-300"
                       />
                       <span>{dept}</span>
                     </label>
                   ))}
+                  <label className="flex items-center space-x-2 border-gray-300 text-gray-500">
+                    <input
+                      type="radio"
+                      name="departement"
+                      value="custom"
+                      checked={
+                        !!form.departement &&
+                        !["MAINTENANCE", "EHS", "GA"].includes(form.departement)
+                      }
+                      onChange={() => setForm({ ...form, departement: "" })}
+                      className="w-4 h-4 border-gray-300"
+                    />
+                    <span>Custom</span>
+                    <input
+                      type="text"
+                      placeholder="Departement lain..."
+                      value={
+                        ["MAINTENANCE", "EHS", "GA"].includes(form.departement)
+                          ? ""
+                          : form.departement
+                      }
+                      onChange={(e) =>
+                        setForm({ ...form, departement: e.target.value })
+                      }
+                      className="ml-2 border rounded px-2 py-1 border-gray-300 text-gray-500"
+                      disabled={["MAINTENANCE", "EHS", "GA"].includes(
+                        form.departement,
+                      )}
+                    />
+                  </label>
                 </div>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Deskripsi
+                </label>
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  className="text-sm border rounded-lg px-3 py-2 border-gray-300 text-gray-500 h-24"
+                />
               </div>
 
               {/* Catatan */}
@@ -257,7 +314,7 @@ function PageComponent() {
                   name="catatan"
                   value={form.catatan}
                   onChange={handleChange}
-                  className="text-sm border rounded-lg px-3 py-2 text-black h-24"
+                  className="text-sm border rounded-lg px-3 py-2 border-gray-300 h-24 text-gray-500"
                 />
               </div>
 
@@ -268,7 +325,7 @@ function PageComponent() {
                 </label>
                 {form.dokumentasiUrl && (
                   <Image
-                    height={200}
+                    height={300}
                     width={200}
                     src={form.dokumentasiUrl}
                     alt="Dokumentasi"
@@ -279,6 +336,7 @@ function PageComponent() {
                   type="file"
                   name="dokumentasi"
                   accept="image/*"
+                  className="text-sm text-gray-500"
                   onChange={handleChange}
                 />
               </div>
@@ -290,7 +348,7 @@ function PageComponent() {
                 </label>
                 {form.p2hUrl && (
                   <Image
-                    height={200}
+                    height={300}
                     width={200}
                     src={form.p2hUrl}
                     alt="P2H"
@@ -301,6 +359,7 @@ function PageComponent() {
                   type="file"
                   name="p2h"
                   accept="image/*"
+                  className="text-sm text-gray-500"
                   onChange={handleChange}
                 />
               </div>

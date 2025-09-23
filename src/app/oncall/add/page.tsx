@@ -10,18 +10,22 @@ import dynamic from "next/dynamic";
 function PageComponent() {
   const router = useRouter();
   const [form, setForm] = useState({
-    tanggal: "",
+    date: "",
     group: "",
     location: "",
     shift: "",
     departement: "",
     catatan: "",
+    description: "",
+    jenis_assets: "",
     dokumentasi: null as File | null,
     p2h: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
 
   // 🔹 State untuk dropdown
+  const [assets, setAssets] = useState<string[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
   const [groups, setGroups] = useState<string[]>([]);
   const [shifts, setShifts] = useState<string[]>([]);
 
@@ -49,7 +53,14 @@ function PageComponent() {
         const shiftSnap = await getDocs(
           collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "shift"),
         );
-
+        const locationSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "locations"),
+        );
+        const assetSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "assets"),
+        );
+        setAssets(assetSnap.docs.map((doc) => doc.data().assets));
+        setLocations(locationSnap.docs.map((doc) => doc.data().location_name));
         setGroups(groupSnap.docs.map((doc) => doc.data().nama));
         setShifts(shiftSnap.docs.map((doc) => doc.data().nama));
       } catch (error) {
@@ -107,10 +118,12 @@ function PageComponent() {
       );
 
       await addDoc(colRef, {
-        tanggal: Timestamp.fromDate(new Date(form.tanggal)),
+        date: Timestamp.fromDate(new Date(form.date)),
         group: form.group,
         location: form.location,
         shift: form.shift,
+        description: form.description,
+        jenis_assets: form.jenis_assets,
         departement: form.departement,
         catatan: form.catatan,
         dokumentasiUrl: imageUrl || null,
@@ -121,12 +134,14 @@ function PageComponent() {
       router.push("/oncall");
 
       setForm({
-        tanggal: "",
+        date: "",
         group: "",
         location: "",
         shift: "",
         departement: "",
         catatan: "",
+        description: "",
+        jenis_assets: "",
         dokumentasi: null,
         p2h: null,
       });
@@ -153,9 +168,9 @@ function PageComponent() {
                   Tanggal
                 </label>
                 <input
-                  type="date"
-                  name="tanggal"
-                  value={form.tanggal}
+                  type="datetime-local"
+                  name="date"
+                  value={form.date}
                   onChange={handleChange}
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
@@ -184,19 +199,24 @@ function PageComponent() {
               </div>
 
               {/* Lokasi */}
-              <div className="flex flex-col">
-                <label className="text-sm font-medium text-gray-600 mb-1">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
                   Lokasi
                 </label>
-                <input
-                  type="text"
+                <select
                   name="location"
                   value={form.location}
                   onChange={handleChange}
-                  placeholder="Contoh: Jakarta"
-                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
                   required
-                />
+                >
+                  <option value="">-- Pilih Lokasi --</option>
+                  {locations.map((j, i) => (
+                    <option key={i} value={j}>
+                      {j}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Shift Dropdown dari Firestore */}
@@ -220,16 +240,36 @@ function PageComponent() {
                 </select>
               </div>
 
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Jenis Asset
+                </label>
+                <select
+                  name="jenis_assets"
+                  value={form.jenis_assets}
+                  onChange={handleChange}
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Assets --</option>
+                  {assets.map((g, i) => (
+                    <option key={i} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Departement Radio */}
               <div className="flex flex-col md:col-span-2">
                 <label className="text-sm font-medium text-gray-600 mb-2">
                   Departement
                 </label>
-                <div className="flex flex-wrap gap-4">
+                <div className="flex gap-4">
                   {["MAINTENANCE", "EHS", "GA"].map((dept) => (
                     <label
                       key={dept}
-                      className="flex items-center space-x-2 cursor-pointer"
+                      className="flex items-center space-x-2 text-gray-600"
                     >
                       <input
                         type="radio"
@@ -237,13 +277,56 @@ function PageComponent() {
                         value={dept}
                         checked={form.departement === dept}
                         onChange={handleChange}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                        required
+                        className="w-4 h-4 text-black"
                       />
-                      <span className="text-sm text-gray-700">{dept}</span>
+                      <span>{dept}</span>
                     </label>
                   ))}
+                  <label className="flex items-center space-x-2 text-gray-600">
+                    <input
+                      type="radio"
+                      name="departement"
+                      value="custom"
+                      checked={
+                        !!form.departement &&
+                        !["MAINTENANCE", "EHS", "GA"].includes(form.departement)
+                      }
+                      onChange={() => setForm({ ...form, departement: "" })}
+                      className="w-4 h-4 text-black"
+                    />
+                    <span>Custom</span>
+                    <input
+                      type="text"
+                      placeholder="Departement lain..."
+                      value={
+                        ["MAINTENANCE", "EHS", "GA"].includes(form.departement)
+                          ? ""
+                          : form.departement
+                      }
+                      onChange={(e) =>
+                        setForm({ ...form, departement: e.target.value })
+                      }
+                      className="ml-2 border rounded px-2 py-1 text-black"
+                      disabled={["MAINTENANCE", "EHS", "GA"].includes(
+                        form.departement,
+                      )}
+                    />
+                  </label>
                 </div>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col md:col-span-2">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Deskripsi
+                </label>
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  placeholder="Tulis deskripsi tambahan di sini..."
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
 
               {/* Catatan */}

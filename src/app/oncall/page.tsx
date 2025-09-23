@@ -23,7 +23,7 @@ interface OnCall {
   group: string;
   shift: string;
   location: string;
-  tanggal: Timestamp;
+  date: Timestamp;
 }
 
 export default function OnCallPage() {
@@ -165,13 +165,23 @@ export default function OnCallPage() {
                   <h2 className="text-lg font-semibold text-gray-800">
                     {oncall.group}
                   </h2>
-                  <p className="text-sm text-gray-600">{oncall.location}</p>
+                  <p className="text-xm text-gray-600">{oncall.location}</p>
 
                   <p className="text-xs text-gray-500">Shift: {oncall.shift}</p>
                   <p className="text-xs text-gray-500">
-                    Tanggal:{" "}
-                    {oncall.tanggal &&
-                      oncall.tanggal.toDate().toLocaleDateString()}
+                    {oncall.date &&
+                      (() => {
+                        const dateObj = oncall.date.toDate();
+                        const options: Intl.DateTimeFormatOptions = {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        };
+                        return `${dateObj.toLocaleDateString("id-ID", options)} WIB`;
+                      })()}
                   </p>
                 </div>
 

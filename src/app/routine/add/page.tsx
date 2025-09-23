@@ -101,7 +101,7 @@ function PageComponent() {
           db,
           "artifacts/Ij8HEOktiALS0zjKB3ay/locations",
         );
-        const locationSnap = await getDocs(usersCol);
+        const locationSnap = await getDocs(locationsCol);
         const locationData: Location[] = locationSnap.docs.map((docSnap) => {
           const dataLoc = docSnap.data() as Location;
           return { id: docSnap.id, ...dataLoc };
