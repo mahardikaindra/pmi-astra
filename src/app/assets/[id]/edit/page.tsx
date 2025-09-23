@@ -4,26 +4,31 @@ import Image from "next/image";
 import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db, storage } from "../../../../../firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+} from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter, useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 
 function PageComponent() {
   const router = useRouter();
-  const { id } = useParams();
+  const params = useParams();
+  const { id } = params as { id: string }; // 🔑 ambil asset id dari URL
 
   const [form, setForm] = useState({
-    address: "",
+    location: "",
+    jenis_assets: "",
     assets: "",
     condition: "",
     facility: "",
-    floor: "",
     initial_date: "",
     last_maintenance: "",
     last_replace_part: "",
-    latitude: "",
-    longitude: "",
     merk: "",
     technical_data: "",
     image: "",
@@ -33,57 +38,69 @@ function PageComponent() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // 🔹 State dropdown
+  const [locations, setLocations] = useState<string[]>([]);
+
   // 🔑 cek login token
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) router.push("/");
   }, [router]);
 
-  // 📥 Ambil data asset berdasarkan id
+  // 🔹 Ambil data asset by id
   useEffect(() => {
-    const fetchAsset = async () => {
-      if (!id) {
-        setLoading(false); // ✅ jangan biarkan loading infinite kalau id null
-        return;
-      }
+    const fetchData = async () => {
       try {
-        const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/assets/${id}`);
-        const snap = await getDoc(docRef);
+        // ambil data lokasi untuk dropdown
+        const locationSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "locations"),
+        );
+        setLocations(locationSnap.docs.map((doc) => doc.data().location_name));
 
-        if (snap.exists()) {
-          setForm(snap.data() as any);
+        // ambil data asset by id
+        const docRef = doc(
+          db,
+          "artifacts",
+          "Ij8HEOktiALS0zjKB3ay",
+          "assets",
+          id,
+        );
+        const snapshot = await getDoc(docRef);
+
+        if (snapshot.exists()) {
+          setForm(snapshot.data() as any);
         } else {
-          alert("Asset tidak ditemukan ❌");
+          alert("Data asset tidak ditemukan ❌");
           router.push("/assets");
         }
       } catch (error) {
         console.error("Error fetching asset:", error);
-        alert("Gagal mengambil data asset ❌");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchAsset();
+    fetchData();
   }, [id, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
     setSubmitting(true);
     try {
-      let imageURL = form.image;
+      let imageURL = form.image; // default gambar lama
       if (image) {
-        const imgRef = ref(storage, `assets/${id}-${image.name}`);
+        const imgRef = ref(storage, `assets/${Date.now()}-${image.name}`);
         await uploadBytes(imgRef, image);
         imageURL = await getDownloadURL(imgRef);
       }
 
-      const docRef = doc(db, `artifacts/Ij8HEOktiALS0zjKB3ay/assets/${id}`);
+      const docRef = doc(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "assets", id);
+
       await updateDoc(docRef, {
         ...form,
         image: imageURL,
@@ -93,24 +110,20 @@ function PageComponent() {
       router.push("/assets");
     } catch (error) {
       console.error("Error updating asset:", error);
-      alert("Gagal memperbarui data ❌");
+      alert("Gagal memperbarui asset ❌");
     } finally {
       setSubmitting(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+    return <p className="text-center mt-20">Loading...</p>;
   }
 
   return (
     <>
       <Header hasBack />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 top-32 pt-30 z-0">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center top-32 pt-30 z-0">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Edit Asset</h1>
 
@@ -148,21 +161,40 @@ function PageComponent() {
           <form onSubmit={handleSubmit} className="space-y-6 mb-12">
             {/* Grid Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 🔹 Lokasi Dropdown */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Lokasi
+                </label>
+                <select
+                  name="location"
+                  value={form.location}
+                  onChange={handleChange}
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Lokasi --</option>
+                  {locations.map((loc, i) => (
+                    <option key={i} value={loc}>
+                      {loc}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Input lain */}
               {[
-                "address",
-                "assets",
-                "condition",
-                "facility",
-                "floor",
-                "last_replace_part",
-                "latitude",
-                "longitude",
-                "merk",
-                "technical_data",
-              ].map((field) => (
+                { field: "assets", label: "Kode Aset" },
+                { field: "jenis_assets", label: "Jenis Aset" },
+                { field: "condition", label: "Kondisi" },
+                { field: "facility", label: "Fasilitas" },
+                { field: "last_replace_part", label: "Part diganti" },
+                { field: "merk", label: "Merk" },
+                { field: "technical_data", label: "Data Teknis" },
+              ].map(({ field, label }) => (
                 <div key={field} className="flex flex-col">
-                  <label className="text-sm font-medium text-gray-600 mb-1 capitalize">
-                    {field.replace("_", " ")}
+                  <label className="text-sm font-medium text-gray-600 mb-1">
+                    {label}
                   </label>
                   <input
                     type="text"
@@ -170,6 +202,7 @@ function PageComponent() {
                     value={(form as any)[field]}
                     onChange={handleChange}
                     className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
                   />
                 </div>
               ))}
@@ -185,6 +218,7 @@ function PageComponent() {
                   value={form.initial_date}
                   onChange={handleChange}
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
 
@@ -199,6 +233,7 @@ function PageComponent() {
                   value={form.last_maintenance}
                   onChange={handleChange}
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
             </div>

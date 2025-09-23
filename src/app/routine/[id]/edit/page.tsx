@@ -53,6 +53,7 @@ interface Assets {
   latitude: string;
   longitude: string;
   image?: string;
+  jenis_assets?: string;
 }
 
 function PageComponent() {
@@ -391,8 +392,8 @@ function PageComponent() {
               >
                 <option value="">-- Pilih Assets --</option>
                 {assets.map((asset, i) => (
-                  <option key={i} value={asset.assets}>
-                    {asset.assets}
+                  <option key={i} value={asset.jenis_assets}>
+                    {asset.jenis_assets}
                   </option>
                 ))}
               </select>

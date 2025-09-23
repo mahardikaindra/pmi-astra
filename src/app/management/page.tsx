@@ -12,7 +12,6 @@ import {
   Map,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { title } from "process";
 
 const menus = [
   {

@@ -109,7 +109,7 @@ function PageComponent() {
     }
   };
 
-  const canEdit = role === "admin"
+  const canEdit = role === "admin";
 
   if (loading) return <p className="text-center py-10">Loading...</p>;
 
@@ -180,13 +180,15 @@ function PageComponent() {
                     <Eye size={20} />
                   </Link>
 
-                  {canEdit && <Link
-                    href={`/management/location/${location.id}/edit`}
-                    title="Edit"
-                    className="text-gray-600 hover:text-blue-600"
-                  >
-                    <Pencil size={20} />
-                  </Link>}
+                  {canEdit && (
+                    <Link
+                      href={`/management/location/${location.id}/edit`}
+                      title="Edit"
+                      className="text-gray-600 hover:text-blue-600"
+                    >
+                      <Pencil size={20} />
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       setSelectedLocation(location);

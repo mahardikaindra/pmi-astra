@@ -156,15 +156,13 @@ export default function ViewAssetPage() {
             {/* Detail asset */}
             <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-gray-700">
               {[
-                ["Alamat", assetData?.address],
-                ["Aset", assetData?.assets],
+                ["Lokasi", assetData?.address],
+                ["Kode Aset", assetData?.assets],
+                ["Jenis Aset", assetData?.assets],
+                ["Kondisi", assetData?.condition],
                 ["Merk", assetData?.merk],
                 ["Fasilitas", assetData?.facility],
-                // ["Lantai", assetData?.floor],
-                ["Kondisi", assetData?.condition],
                 ["Part Diganti", assetData?.last_replace_part],
-                // ["Latitude", assetData?.latitude],
-                // ["Longitude", assetData?.longitude],
                 ["Data Teknis", assetData?.technical_data],
                 ["Tanggal Awal", assetData?.initial_date],
                 ["Last Maintenance", assetData?.last_maintenance],

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { db, storage } from "../../../../firebaseConfig";
-import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -45,6 +45,7 @@ interface Assets {
   latitude: string;
   longitude: string;
   image?: string;
+  jenis_assets: string;
 }
 
 function PageComponent() {
@@ -339,8 +340,8 @@ function PageComponent() {
               >
                 <option value="">-- Pilih Assets --</option>
                 {assets.map((asset, i) => (
-                  <option key={i} value={asset.assets}>
-                    {asset.assets}
+                  <option key={i} value={asset.jenis_assets}>
+                    {asset.jenis_assets}
                   </option>
                 ))}
               </select>

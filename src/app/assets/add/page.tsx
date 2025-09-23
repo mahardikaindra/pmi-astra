@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import Image from "next/image";
-import Header from "@/components/Header"; // Assuming Header component is correctly imported
+import Header from "@/components/Header";
 import { useState, useEffect } from "react";
 import { db, storage } from "../../../../firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -12,16 +12,14 @@ import dynamic from "next/dynamic";
 function PageComponent() {
   const router = useRouter();
   const [form, setForm] = useState({
-    address: "",
+    location: "",
+    jenis_assets: "",
     assets: "",
     condition: "",
     facility: "",
-    floor: "",
     initial_date: "",
     last_maintenance: "",
     last_replace_part: "",
-    latitude: "",
-    longitude: "",
     merk: "",
     technical_data: "",
   });
@@ -29,13 +27,34 @@ function PageComponent() {
   const [image, setImage] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // 🔹 State dropdown
+  const [locations, setLocations] = useState<string[]>([]);
+
   // 🔑 cek login token
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) router.push("/");
   }, [router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 🔹 Ambil data dropdown dari Firestore
+  useEffect(() => {
+    const fetchOptions = async () => {
+      try {
+        const locationSnap = await getDocs(
+          collection(db, "artifacts", "Ij8HEOktiALS0zjKB3ay", "locations"),
+        );
+
+        setLocations(locationSnap.docs.map((doc) => doc.data().location_name));
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+    fetchOptions();
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -62,16 +81,14 @@ function PageComponent() {
 
       // reset form
       setForm({
-        address: "",
+        location: "",
+        jenis_assets: "",
         assets: "",
         condition: "",
         facility: "",
-        floor: "",
         initial_date: "",
         last_maintenance: "",
         last_replace_part: "",
-        latitude: "",
-        longitude: "",
         merk: "",
         technical_data: "",
       });
@@ -127,21 +144,40 @@ function PageComponent() {
           <form onSubmit={handleSubmit} className="space-y-6 mb-12">
             {/* Grid Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* 🔹 Lokasi Dropdown */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  Lokasi
+                </label>
+                <select
+                  name="location"
+                  value={form.location}
+                  onChange={handleChange}
+                  className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">-- Pilih Lokasi --</option>
+                  {locations.map((loc, i) => (
+                    <option key={i} value={loc}>
+                      {loc}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Input lain */}
               {[
-                "address",
-                "assets",
-                "condition",
-                "facility",
-                // "floor",
-                "last_replace_part",
-                "latitude",
-                "longitude",
-                "merk",
-                "technical_data",
-              ].map((field) => (
+                { field: "assets", label: "Kode Aset" },
+                { field: "jenis_assets", label: "Jenis Aset" },
+                { field: "condition", label: "Kondisi" },
+                { field: "facility", label: "Fasilitas" },
+                { field: "last_replace_part", label: "Part diganti" },
+                { field: "merk", label: "Merk" },
+                { field: "technical_data", label: "Data Teknis" },
+              ].map(({ field, label }) => (
                 <div key={field} className="flex flex-col">
-                  <label className="text-sm font-medium text-gray-600 mb-1 capitalize">
-                    {field.replace("_", " ")}
+                  <label className="text-sm font-medium text-gray-600 mb-1">
+                    {label}
                   </label>
                   <input
                     type="text"
@@ -149,11 +185,11 @@ function PageComponent() {
                     value={(form as any)[field]}
                     onChange={handleChange}
                     className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required={field !== "latitude" && field !== "longitude"} // latitude/longitude opsional
+                    required
                   />
                 </div>
-              ))}{" "}
-              {/* Closing tag for map function */}
+              ))}
+
               {/* 📅 Initial Date */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-600 mb-1">
@@ -168,6 +204,7 @@ function PageComponent() {
                   required
                 />
               </div>
+
               {/* 📅 Last Maintenance */}
               <div className="flex flex-col">
                 <label className="text-sm font-medium text-gray-600 mb-1">
