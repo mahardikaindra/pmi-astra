@@ -155,25 +155,43 @@ function PageComponent() {
           <div className="p-6">
             {/* Detail asset */}
             <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-gray-700">
-              {[
-                ["Lokasi", assetData?.address],
-                ["Kode Aset", assetData?.assets],
-                ["Jenis Aset", assetData?.jenis_assets],
-                ["Kondisi", assetData?.condition],
-                ["Merk", assetData?.merk],
-                ["Fasilitas", assetData?.facility],
-                ["Part Diganti", assetData?.last_replace_part],
-                ["Data Teknis", assetData?.technical_data],
-                ["Tanggal Awal", assetData?.initial_date],
-                ["Last Maintenance", assetData?.last_maintenance],
-              ].map(([label, value]) => (
-                <div key={label} className="flex flex-col">
-                  <span className="text-xs font-semibold uppercase text-gray-500">
-                    {label}
-                  </span>
-                  <span className="text-sm font-medium">{value || "-"}</span>
-                </div>
-              ))}
+                {[
+                  ["Lokasi", assetData?.address],
+                  ["Kode Aset", assetData?.assets],
+                  ["Jenis Aset", assetData?.jenis_assets],
+                  ["Kondisi", assetData?.condition],
+                  ["Merk", assetData?.merk],
+                  ["Fasilitas", assetData?.facility],
+                  ["Part Diganti", assetData?.last_replace_part],
+                  ["Data Teknis", assetData?.technical_data],
+                  [
+                    "Tanggal Awal",
+                    assetData?.initial_date
+                      ? new Date(assetData.initial_date).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-",
+                  ],
+                  [
+                    "Last Maintenance",
+                    assetData?.last_maintenance
+                      ? new Date(assetData.last_maintenance).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-",
+                  ],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex flex-col">
+                    <span className="text-xs font-semibold uppercase text-gray-500">
+                      {label}
+                    </span>
+                    <span className="text-sm font-medium">{value || "-"}</span>
+                  </div>
+                ))}
             </div>
           </div>
         </div>
