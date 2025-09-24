@@ -42,7 +42,7 @@ export default function ViewAssetPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const role = localStorage.getItem("role");
-      if (role === "SPV" || role === "Head") {
+      if (role === "maintenance" || role === "ais") {
         setCanEdit(true);
       }
     }

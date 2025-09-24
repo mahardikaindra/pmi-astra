@@ -12,7 +12,7 @@ import dynamic from "next/dynamic";
 function PageComponent() {
   const router = useRouter();
   const [form, setForm] = useState({
-    location: "",
+    address: "",
     jenis_assets: "",
     assets: "",
     condition: "",
@@ -81,7 +81,7 @@ function PageComponent() {
 
       // reset form
       setForm({
-        location: "",
+        address: "",
         jenis_assets: "",
         assets: "",
         condition: "",
@@ -150,8 +150,8 @@ function PageComponent() {
                   Lokasi
                 </label>
                 <select
-                  name="location"
-                  value={form.location}
+                  name="address"
+                  value={form.address}
                   onChange={handleChange}
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
