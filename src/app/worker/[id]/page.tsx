@@ -7,6 +7,7 @@ import { db } from "../../../../firebaseConfig";
 import { useParams, notFound } from "next/navigation";
 import Header from "@/components/Header";
 import { Star, Pencil } from "lucide-react";
+import dynamic from "next/dynamic";
 
 // Extend the Window interface to include __app_id
 declare global {
@@ -32,7 +33,7 @@ type ProfileData = {
   rating?: number;
 };
 
-export default function WorkerPage() {
+function PageComponent() {
   const params = useParams<{ id: string }>();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,12 +42,10 @@ export default function WorkerPage() {
 
   // ✅ Cek role hanya di client
   useEffect(() => {
-    if (typeof window !== "undefined") {
       const role = localStorage.getItem("role");
-      if (role === "SPV" || role === "Head") {
+      if (role?.toLocaleLowerCase() === "maintenance" || role?.toLocaleLowerCase() === "ais") {
         setCanReadDelete(true);
       }
-    }
   }, []);
 
   // ✅ Ambil data dari Firestore
@@ -149,7 +148,7 @@ export default function WorkerPage() {
   return (
     <>
       <Header hasBack />
-      <div className="bg-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 font-sans antialiased top-32 pt-30 z-0">
+      <div className="bg-gray-100 min-h-screen flex flex-col items-center p-4 md:p-8 font-sans antialiased top-32 pt-32 z-0">
         <div className="w-full max-w-xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden mb-8">
           <div
             className="relative w-full h-80 bg-cover bg-center rounded-t-2xl flex items-end justify-center pb-4"
@@ -305,7 +304,7 @@ export default function WorkerPage() {
       </div>
 
       {/* Tombol edit hanya jika role = SPV/Head */}
-      {canReadDelete && profileData?.id && (
+      {canReadDelete && profileData && (
         <Link
           href={`/worker/${profileData.id}/edit`}
           className="fixed bottom-6 right-6 bg-[#002D62] hover:bg-[#002D62] text-white p-4 rounded-full shadow-lg flex items-center justify-center mb-12"
@@ -317,3 +316,9 @@ export default function WorkerPage() {
     </>
   );
 }
+
+const WorkerPage = dynamic(() => Promise.resolve(PageComponent), {
+  ssr: false,
+});
+
+export default WorkerPage;
