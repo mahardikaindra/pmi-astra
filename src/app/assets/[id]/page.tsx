@@ -30,6 +30,7 @@ type AssetData = {
   technical_data?: string;
   initial_date?: string;
   last_maintenance?: string;
+  jenis_assets?: string;
 };
 
 function PageComponent() {
@@ -157,7 +158,7 @@ function PageComponent() {
               {[
                 ["Lokasi", assetData?.address],
                 ["Kode Aset", assetData?.assets],
-                ["Jenis Aset", assetData?.assets],
+                ["Jenis Aset", assetData?.jenis_assets],
                 ["Kondisi", assetData?.condition],
                 ["Merk", assetData?.merk],
                 ["Fasilitas", assetData?.facility],
