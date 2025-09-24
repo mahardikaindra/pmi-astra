@@ -6,6 +6,7 @@ import { db } from "../../../../firebaseConfig";
 import { useParams, notFound } from "next/navigation";
 import Header from "@/components/Header";
 import { Pencil } from "lucide-react";
+import dynamic from "next/dynamic";
 
 // extend window untuk appId
 declare global {
@@ -31,7 +32,7 @@ type AssetData = {
   last_maintenance?: string;
 };
 
-export default function ViewAssetPage() {
+function PageComponent() {
   const params = useParams<{ id: string }>();
   const [assetData, setAssetData] = useState<AssetData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,12 +41,10 @@ export default function ViewAssetPage() {
 
   // cek role
   useEffect(() => {
-    if (typeof window !== "undefined") {
       const role = localStorage.getItem("role");
-      if (role === "maintenance" || role === "ais") {
+      if (role?.toLocaleLowerCase() === "maintenance" || role?.toLocaleLowerCase() === "ais") {
         setCanEdit(true);
       }
-    }
   }, []);
 
   // ambil data Firestore realtime
@@ -201,3 +200,10 @@ export default function ViewAssetPage() {
     </>
   );
 }
+
+
+const AssetDetail = dynamic(() => Promise.resolve(PageComponent), {
+  ssr: false,
+});
+
+export default AssetDetail;
