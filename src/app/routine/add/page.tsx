@@ -46,6 +46,7 @@ interface Assets {
   longitude: string;
   image?: string;
   jenis_assets: string;
+  personils: string[];
 }
 
 function PageComponent() {
@@ -60,6 +61,7 @@ function PageComponent() {
     deskripsi: "",
     personil: "",
     result: "",
+    personils: [] as string[],
     dokumentasi: null as File | null,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -225,20 +227,37 @@ function PageComponent() {
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Personil
               </label>
-              <select
-                name="personil"
-                value={form.personil}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
-                required
-              >
-                <option value="">-- Pilih Personil --</option>
-                {users.map((j: any, i: number) => (
-                  <option key={i} value={j.name}>
-                    {j.name}
-                  </option>
+              <div className="grid grid-cols-2 gap-2">
+                {users.map((user, i) => (
+                  <label key={i} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      value={user.name}
+                      checked={form.personils.includes(user.name)}
+                      disabled={
+                        !form.personils.includes(user.name) &&
+                        form.personils.length >= 5
+                      }
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setForm((prev) => ({
+                          ...prev,
+                          personils: checked
+                            ? [...prev.personils, user.name]
+                            : prev.personils.filter((n) => n !== user.name),
+                        }));
+                      }}
+                      className="accent-[#002D62]"
+                    />
+                    <span className="text-gray-500">{user.name}</span>
+                  </label>
                 ))}
-              </select>
+              </div>
+              {form.personils.length >= 5 && (
+                <p className="text-xs text-red-500 mt-1">
+                  Maksimal 5 personil dapat dipilih.
+                </p>
+              )}
             </div>
 
             {/* Lokasi */}
