@@ -22,6 +22,7 @@ function PageComponent() {
     last_replace_part: "",
     merk: "",
     technical_data: "",
+    msds: null as File | null,
   });
 
   const [image, setImage] = useState<File | null>(null);
@@ -58,6 +59,12 @@ function PageComponent() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setForm({ ...form, msds: e.target.files[0] });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -69,10 +76,18 @@ function PageComponent() {
         imageURL = await getDownloadURL(imgRef);
       }
 
+      let fileUrl = "";
+      if (form.msds) {
+        const fileRef = ref(storage, `routine/${Date.now()}-${form.msds.name}`);
+        await uploadBytes(fileRef, form.msds);
+        fileUrl = await getDownloadURL(fileRef);
+      }
+
       // 🔥 addDoc → auto-id
       await addDoc(collection(db, "artifacts/Ij8HEOktiALS0zjKB3ay/assets"), {
         ...form,
         image: imageURL,
+        msds: fileUrl,
         floor: "",
       });
 
@@ -91,6 +106,7 @@ function PageComponent() {
         last_replace_part: "",
         merk: "",
         technical_data: "",
+        msds: null,
       });
       setImage(null);
     } catch (error) {
@@ -218,6 +234,21 @@ function PageComponent() {
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  MSDS
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                />
+                {form.msds && (
+                  <p className="text-sm text-gray-500 mt-1">{form.msds.name}</p>
+                )}
               </div>
             </div>
 

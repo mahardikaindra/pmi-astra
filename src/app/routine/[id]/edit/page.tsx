@@ -302,7 +302,9 @@ function PageComponent() {
                 ))}
               </div>
               {form.personils.length > 5 && (
-                <p className="text-red-500 text-xs mt-1">Maksimal 5 personil.</p>
+                <p className="text-red-500 text-xs mt-1">
+                  Maksimal 5 personil.
+                </p>
               )}
             </div>
 

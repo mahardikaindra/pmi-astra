@@ -32,6 +32,7 @@ function PageComponent() {
     merk: "",
     technical_data: "",
     image: "",
+    msds: null as File | null,
   });
 
   const [image, setImage] = useState<File | null>(null);
@@ -40,6 +41,8 @@ function PageComponent() {
 
   // 🔹 State dropdown
   const [locations, setLocations] = useState<string[]>([]);
+  const [msdsUrl, setDokumentasiUrl] = useState<string>(""); // preview lokal
+  const [msds, setDokumentasi] = useState<File | null>(null); // file msds
 
   // 🔑 cek login token
   useEffect(() => {
@@ -88,10 +91,26 @@ function PageComponent() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setDokumentasi(file);
+      setDokumentasiUrl(URL.createObjectURL(file)); // preview lokal
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      let fileUrl = msdsUrl;
+
+      if (msds) {
+        const fileRef = ref(storage, `routine/${Date.now()}-${msds.name}`);
+        await uploadBytes(fileRef, msds);
+        fileUrl = await getDownloadURL(fileRef);
+      }
+
       let imageURL = form.image; // default gambar lama
       if (image) {
         const imgRef = ref(storage, `assets/${Date.now()}-${image.name}`);
@@ -104,6 +123,7 @@ function PageComponent() {
       await updateDoc(docRef, {
         ...form,
         image: imageURL,
+        msds: fileUrl,
       });
 
       alert("Asset berhasil diperbarui ✅");
@@ -235,6 +255,33 @@ function PageComponent() {
                   className="text-sm text-gray-700 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
+              </div>
+
+              {/* 🔹 MSDS Upload */}
+              <div>
+                <label className="text-sm font-medium text-gray-600 mb-1">
+                  MSDS
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-500"
+                />
+                {msdsUrl && (
+                  <div className="mt-2">
+                    <Image
+                      src={msdsUrl}
+                      alt="Preview"
+                      width={300}
+                      height={200}
+                      className="rounded-lg border"
+                    />
+                  </div>
+                )}
+                {msds && (
+                  <p className="text-sm text-gray-500 mt-1">{msds.name}</p>
+                )}
               </div>
             </div>
 

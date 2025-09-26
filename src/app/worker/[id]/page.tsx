@@ -42,10 +42,13 @@ function PageComponent() {
 
   // ✅ Cek role hanya di client
   useEffect(() => {
-      const role = localStorage.getItem("role");
-      if (role?.toLocaleLowerCase() === "maintenance" || role?.toLocaleLowerCase() === "ais") {
-        setCanReadDelete(true);
-      }
+    const role = localStorage.getItem("role");
+    if (
+      role?.toLocaleLowerCase() === "maintenance" ||
+      role?.toLocaleLowerCase() === "ais"
+    ) {
+      setCanReadDelete(true);
+    }
   }, []);
 
   // ✅ Ambil data dari Firestore
